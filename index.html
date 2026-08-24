@@ -1,0 +1,2488 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RA Beauty — نظام الإدارة</title>
+<meta name="theme-color" content="#4A1E42">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="RA Beauty">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F1F3; --surface:#FFFFFF; --surface-2:#FBF7F9;
+  --ink:#2B1A2A; --muted:#7A6873; --line:#E9DEE4;
+  --plum:#6B2E5F; --plum-dark:#4A1E42; --plum-soft:#F2E6F0;
+  --gold:#C79A4B; --gold-soft:#F7EFDF;
+  --sage:#3F7A63; --sage-soft:#E4F0EA;
+  --clay:#B4453C; --clay-soft:#FBE8E6;
+  --r-lg:16px; --r-md:11px; --r-sm:8px;
+  --shadow:0 1px 2px rgba(43,26,42,.05), 0 8px 24px -12px rgba(43,26,42,.18);
+  --f-display:"Tajawal","IBM Plex Sans Arabic",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans Arabic","Segoe UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--f-body);
+  font-size:15px; line-height:1.6; -webkit-font-smoothing:antialiased;
+}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+h1,h2,h3,h4{font-family:var(--f-display);font-weight:700;margin:0;letter-spacing:-.2px}
+a{color:var(--plum)}
+.hidden{display:none !important}
+::selection{background:var(--plum-soft)}
+:focus-visible{outline:2px solid var(--plum);outline-offset:2px;border-radius:4px}
+
+/* ============ LOGIN ============ */
+#login{min-height:100vh;display:grid;grid-template-columns:1.05fr .95fr}
+.login-brand{
+  background:linear-gradient(155deg,var(--plum-dark) 0%, var(--plum) 55%, #7C3A6C 100%);
+  color:#fff;display:flex;flex-direction:column;justify-content:space-between;padding:44px 40px;position:relative;overflow:hidden;
+}
+.login-brand::after{
+  content:"";position:absolute;inset:auto -120px -160px auto;width:420px;height:420px;border-radius:50%;
+  background:radial-gradient(circle at 30% 30%, rgba(199,154,75,.35), transparent 62%);
+}
+.monogram{font-family:var(--f-display);line-height:1}
+.monogram b{display:block;font-size:76px;font-weight:800;letter-spacing:2px}
+.monogram em{display:block;font-style:normal;font-size:21px;font-weight:500;letter-spacing:.62em;
+  color:var(--gold);margin-top:8px;padding-inline-start:4px}
+.brand-rule{width:56px;height:2px;background:var(--gold);margin:18px 0}
+.login-brand p{max-width:34ch;color:#EDDCE8;margin:0;font-weight:300}
+.brand-foot{font-size:12.5px;color:#D9C3D4;position:relative;z-index:1}
+.login-panel{display:flex;align-items:center;justify-content:center;padding:32px;background:var(--surface);padding-bottom:calc(32px + env(safe-area-inset-bottom,0px))}
+.login-card{width:100%;max-width:340px}
+.login-card h2{font-size:26px;margin-bottom:4px}
+.login-card .sub{color:var(--muted);font-size:14px;margin:0 0 26px}
+.err{background:var(--clay-soft);color:var(--clay);padding:9px 12px;border-radius:var(--r-sm);font-size:13.5px;margin-bottom:14px}
+
+/* ============ FORM ATOMS ============ */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.field input,.field select,.field textarea{
+  width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-sm);
+  background:var(--surface);transition:border-color .15s, box-shadow .15s;
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+  outline:none;border-color:var(--plum);box-shadow:0 0 0 3px var(--plum-soft)
+}
+.field textarea{resize:vertical;min-height:70px}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.btn{
+  border:1px solid transparent;border-radius:var(--r-sm);padding:10px 16px;font-weight:600;font-size:14px;
+  background:var(--plum);color:#fff;transition:filter .15s, background .15s;
+}
+.btn:hover{filter:brightness(1.1)}
+.btn:active{filter:brightness(.95)}
+.btn.block{width:100%;padding:12px}
+.btn.ghost{background:transparent;color:var(--plum);border-color:var(--line)}
+.btn.ghost:hover{background:var(--plum-soft)}
+.btn.quiet{background:var(--surface-2);color:var(--ink);border-color:var(--line)}
+.btn.quiet:hover{background:var(--plum-soft)}
+.btn.danger{background:var(--clay)}
+.btn.sm{padding:6px 11px;font-size:13px;border-radius:var(--r-sm)}
+.btn.gold{background:var(--gold);color:#3A2A08}
+
+/* ============ APP SHELL ============ */
+#app{display:grid;grid-template-columns:236px 1fr;min-height:100vh}
+.side{background:var(--surface);border-left:1px solid var(--line);padding:22px 16px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh}
+.side .logo{font-family:var(--f-display);padding:0 8px 4px;line-height:1}
+.side .logo b{display:block;font-size:32px;font-weight:800;letter-spacing:1.5px}
+.side .logo em{display:block;font-style:normal;font-size:11.5px;font-weight:500;letter-spacing:.5em;
+  color:var(--gold);margin-top:5px;padding-inline-start:2px}
+.side .tag{font-size:11px;color:var(--muted);padding:0 8px 18px;letter-spacing:.14em;text-transform:uppercase}
+.nav{border:0;background:transparent;text-align:right;padding:10px 12px;border-radius:var(--r-md);color:var(--ink);
+  font-size:14.5px;font-weight:500;display:flex;align-items:center;gap:10px;transition:background .14s}
+.nav:hover{background:var(--surface-2)}
+.nav.on{background:var(--plum);color:#fff}
+.nav .ic{width:20px;text-align:center;font-size:15px;opacity:.9}
+.nav .count{margin-inline-start:auto;background:var(--clay);color:#fff;font-size:11px;font-weight:700;
+  padding:1px 7px;border-radius:20px;min-width:20px;text-align:center}
+.nav.on .count{background:var(--gold);color:#3A2A08}
+.side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px}
+.who{display:flex;align-items:center;gap:10px;padding:0 6px 10px}
+.avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:14px;font-family:var(--f-display);flex:none}
+.who .nm{font-weight:600;font-size:13.5px;line-height:1.25}
+.who .rl{font-size:11.5px;color:var(--muted)}
+.syncbar{font-size:11px;color:var(--muted);padding:8px 8px 0;cursor:pointer;letter-spacing:.02em}
+
+.main{padding:26px 30px 60px;max-width:1240px;width:100%}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.page-head h1{font-size:27px;letter-spacing:-.4px}
+.page-head .desc{color:var(--muted);font-size:13.5px;margin-top:2px}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* ============ CARDS / TABLES ============ */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px;box-shadow:var(--shadow)}
+.card h3{font-size:16px;margin-bottom:2px}
+.card .card-sub{font-size:12.5px;color:var(--muted);margin-bottom:14px}
+.grid{display:grid;gap:16px}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g-2-1{grid-template-columns:1.6fr 1fr}
+.stat .lbl{font-size:12px;color:var(--muted);letter-spacing:.06em;font-weight:600}
+.stat .val{font-family:var(--f-display);font-size:30px;line-height:1.15;margin-top:6px;letter-spacing:-1px}
+.stat .val small{font-size:14px;color:var(--muted);font-family:var(--f-body);letter-spacing:0;margin-inline-start:4px}
+.stat .note{font-size:12px;color:var(--muted);margin-top:4px}
+.stat.accent{background:linear-gradient(150deg,var(--plum-dark),var(--plum));color:#fff;border-color:transparent}
+.stat.accent .lbl,.stat.accent .note{color:#E7D3E3}
+.stat.accent .val small{color:#E7D3E3}
+
+table{width:100%;border-collapse:collapse}
+th{font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);text-align:right;
+  padding:8px 10px;border-bottom:1px solid var(--line);font-weight:700;white-space:nowrap}
+td{padding:11px 10px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--surface-2)}
+.num{font-variant-numeric:tabular-nums}
+.tbl-wrap{overflow-x:auto;margin:0 -18px -18px;padding:0 18px 4px}
+
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;white-space:nowrap}
+.chip.plum{background:var(--plum-soft);color:var(--plum-dark)}
+.chip.gold{background:var(--gold-soft);color:#8A6415}
+.chip.sage{background:var(--sage-soft);color:var(--sage)}
+.chip.clay{background:var(--clay-soft);color:var(--clay)}
+.chip.grey{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty .big{font-family:var(--f-display);font-size:17px;color:var(--ink);margin-bottom:4px}
+.empty .btn{margin-top:14px}
+
+/* ============ DAY RAIL (signature) ============ */
+.rail{position:relative;padding-inline-start:6px}
+.rail::before{content:"";position:absolute;top:6px;bottom:6px;right:74px;width:1px;background:var(--line)}
+.slot{display:grid;grid-template-columns:74px 1fr;gap:0;margin-bottom:12px;position:relative}
+.slot .t{font-family:var(--f-display);font-size:15px;padding-top:12px;color:var(--ink);position:relative}
+.slot .t em{display:block;font-size:11px;color:var(--muted);font-style:normal;font-family:var(--f-body)}
+.slot .t::after{content:"";position:absolute;top:19px;left:-5px;width:9px;height:9px;border-radius:50%;
+  background:var(--surface);border:2px solid var(--plum)}
+.slot.done .t::after{background:var(--sage);border-color:var(--sage)}
+.slot.cancel .t::after{background:var(--line);border-color:var(--line)}
+.appt{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:12px 14px;
+  margin-inline-start:20px;border-inline-start:4px solid var(--plum);transition:transform .12s, box-shadow .12s;cursor:pointer}
+.appt:hover{transform:translateX(-3px);box-shadow:var(--shadow)}
+.appt .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.appt .cn{font-weight:700;font-size:15px}
+.appt .sv{color:var(--muted);font-size:13px;margin-top:3px}
+.appt .meta{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:8px;align-items:center}
+.appt .price{margin-inline-start:auto;font-family:var(--f-display);font-size:16px;color:var(--ink)}
+.slot.done .appt{background:var(--surface-2)}
+.slot.cancel .appt{opacity:.55}
+
+/* ============ CALENDAR ============ */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal .dow{font-size:11.5px;color:var(--muted);text-align:center;font-weight:700;padding-bottom:2px}
+.cal .cell{min-height:82px;border:1px solid var(--line);border-radius:var(--r-sm);padding:6px 7px;
+  background:var(--surface);cursor:pointer;transition:border-color .12s, background .12s;overflow:hidden}
+.cal .cell:hover{border-color:var(--plum);background:var(--plum-soft)}
+.cal .cell.empty{border:0;background:transparent;cursor:default;min-height:0}
+.cal .cell.today{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold-soft)}
+.cal .dnum{font-size:12.5px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.cal .cell.has .dnum{color:var(--ink)}
+.cal .pill{display:block;font-size:10.5px;background:var(--surface-2);border-radius:4px;padding:2px 5px;
+  margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal .more{font-size:10.5px;color:var(--muted);margin-top:3px}
+.cal .sum{font-size:10.5px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}
+.month-card{cursor:pointer;transition:transform .12s, box-shadow .12s}
+.month-card:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--plum)}
+.month-card.off{opacity:.55}
+
+.cal .occ{display:block;font-size:9.5px;font-weight:700;background:var(--gold-soft);color:#8A6415;
+  border-radius:4px;padding:1px 5px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal .cell.occ-day{background:#FFFCF4}
+.occ-strip{background:var(--gold-soft);border:1px solid #EBD9AE;color:#8A6415;border-radius:var(--r-md);
+  padding:10px 14px;margin-bottom:14px;font-size:13.5px}
+.occ-strip b{font-family:var(--f-display)}
+
+/* ============ IMPORTANT DATES ============ */
+.soon-card{background:var(--gold-soft);border:1px solid #EBD9AE;border-radius:var(--r-md);padding:12px 14px;cursor:pointer;transition:.12s}
+.soon-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.soon-card .cnt{font-family:var(--f-display);font-weight:700;font-size:12px;color:#8A6415;letter-spacing:.02em}
+.soon-card .nm{font-family:var(--f-display);font-size:16px;font-weight:700;margin-top:3px}
+.soon-card .dt{font-size:12px;color:var(--muted);margin-top:2px}
+.soon-card .nt{font-size:12px;color:#8A6415;margin-top:6px}
+.card.dim{opacity:.66}
+.occ-row{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px dashed var(--line);cursor:pointer}
+.occ-row:last-child{border-bottom:0}
+.occ-row:hover .b b{color:var(--plum)}
+.occ-row.past{opacity:.5}
+.occ-row .d{font-family:var(--f-display);font-weight:700;font-size:15px;min-width:26px;text-align:center;
+  background:var(--surface-2);border-radius:6px;padding:2px 0;color:var(--plum-dark)}
+.occ-row .b{font-size:13.5px;line-height:1.5}
+.occ-row .b em{display:block;font-style:normal;font-size:11.5px;color:var(--muted)}
+.occ-row .b em.nt{color:#8A6415}
+
+/* ============ CLIENT PROFILE ============ */
+.prof-head{display:flex;align-items:center;gap:14px;padding-bottom:16px;border-bottom:1px solid var(--line);
+  margin-bottom:16px;flex-wrap:wrap}
+.prof-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.prof-stats>div{background:var(--surface-2);border-radius:var(--r-sm);padding:10px 12px}
+.prof-stats .k{display:block;font-size:11.5px;color:var(--muted);font-weight:600;margin-bottom:3px}
+.prof-stats b{font-family:var(--f-display);font-size:19px;font-weight:700}
+.prof-sec{margin-bottom:18px}
+.prof-sec h4{font-size:14px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--line);color:var(--plum)}
+.cl-link{background:none;border:0;padding:0;font:inherit;font-weight:700;color:var(--plum);
+  text-decoration:underline;text-underline-offset:3px;cursor:pointer;text-align:right}
+.cl-link:hover{color:var(--gold)}
+@media (max-width:900px){ .prof-stats{grid-template-columns:repeat(2,1fr)} }
+
+/* ============ TASK BOARD ============ */
+.board{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
+.tcol{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-lg);padding:12px}
+.thead{font-family:var(--f-display);font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px;
+  padding:0 4px 10px;color:var(--ink)}
+.thead .cnt{margin-inline-start:auto;background:var(--surface);border:1px solid var(--line);color:var(--muted);
+  font-size:11.5px;padding:1px 8px;border-radius:20px;font-family:var(--f-body)}
+.task{background:var(--surface);border:1px solid var(--line);border-inline-start:3px solid var(--plum);
+  border-radius:var(--r-md);padding:11px 12px;margin-bottom:9px;cursor:pointer;transition:transform .12s, box-shadow .12s}
+.task:hover{transform:translateX(-2px);box-shadow:var(--shadow)}
+.task.late{border-inline-start-color:var(--clay)}
+.task.ok{border-inline-start-color:var(--sage);opacity:.72}
+.task.ok .ttl{text-decoration:line-through;color:var(--muted)}
+.ttop{display:flex;align-items:flex-start;gap:9px}
+.tick{width:19px;height:19px;flex:none;margin-top:2px;border:2px solid var(--line);border-radius:6px;
+  background:var(--surface);padding:0;transition:.12s}
+.tick:hover{border-color:var(--sage)}
+.tick.on{background:var(--sage);border-color:var(--sage);position:relative}
+.tick.on::after{content:"✓";position:absolute;inset:0;color:#fff;font-size:12px;line-height:15px;text-align:center}
+.ttl{font-size:14px;font-weight:600;line-height:1.45}
+.tnote{font-size:12.5px;color:var(--muted);margin:6px 0 0 28px;padding-inline-start:28px}
+.tmeta{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;padding-inline-start:28px}
+.tempty{text-align:center;color:var(--muted);font-size:13px;padding:18px 8px}
+.quick{display:flex;gap:8px;flex-wrap:wrap}
+.quick input,.quick select{padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface)}
+.quick #tqTitle{flex:1;min-width:200px}
+.quick input:focus,.quick select:focus{outline:none;border-color:var(--plum);box-shadow:0 0 0 3px var(--plum-soft)}
+
+/* ============ CONSUMPTION SHEET ============ */
+.cons-cat{font-family:var(--f-display);font-weight:700;font-size:13px;color:var(--plum);
+  margin:16px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.cons-cat:first-child{margin-top:0}
+.cons-row{display:flex;align-items:center;gap:12px;padding:7px 2px;border-bottom:1px dashed var(--line)}
+.cons-row .nm{font-size:14px}
+.cons-row .nm em{display:block;font-style:normal;font-size:11.5px;color:var(--muted)}
+.cons-q{width:78px;margin-inline-start:auto;padding:7px 9px;border:1px solid var(--line);
+  border-radius:var(--r-sm);text-align:center;font-variant-numeric:tabular-nums}
+.cons-q:focus{outline:none;border-color:var(--plum);box-shadow:0 0 0 3px var(--plum-soft)}
+
+/* ============ ALERTS ============ */
+.alert-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.alert-row:last-child{border-bottom:0}
+.alert-row .qty{margin-inline-start:auto;font-weight:700;font-variant-numeric:tabular-nums}
+.bar{height:5px;background:var(--surface-2);border-radius:4px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--sage);border-radius:4px}
+.bar i.low{background:var(--gold)}
+.bar i.out{background:var(--clay)}
+
+/* ============ MODAL ============ */
+.overlay{position:fixed;inset:0;background:rgba(43,26,42,.42);backdrop-filter:blur(3px);z-index:60;
+  display:flex;align-items:flex-start;justify-content:center;padding:28px 16px;overflow-y:auto}
+.modal{background:var(--surface);border-radius:var(--r-lg);width:100%;max-width:620px;box-shadow:0 24px 60px -20px rgba(43,26,42,.5);
+  animation:pop .18s ease-out}
+@keyframes pop{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.modal-head{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.modal-head h3{font-size:18px}
+.modal-head .x{background:none;border:0;font-size:22px;color:var(--muted);line-height:1;padding:0 4px}
+.modal-body{padding:20px 22px}
+.modal-foot{padding:14px 22px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-start;flex-wrap:wrap}
+.modal-foot .spacer{margin-inline-start:auto}
+
+/* service picker lines */
+.line-list{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden;margin-bottom:10px}
+.line{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--line);font-size:14px}
+.line:last-child{border-bottom:0}
+.line .nm{font-weight:600}
+.line .pr{margin-inline-start:auto;font-variant-numeric:tabular-nums;font-weight:600}
+.line .rm{background:none;border:0;color:var(--clay);font-size:17px;line-height:1;padding:0 2px}
+.line-empty{padding:14px;text-align:center;color:var(--muted);font-size:13px}
+.totals{background:var(--surface-2);border-radius:var(--r-sm);padding:12px 14px;font-size:14px}
+.totals div{display:flex;justify-content:space-between;padding:3px 0}
+.totals .grand{border-top:1px solid var(--line);margin-top:6px;padding-top:8px;font-family:var(--f-display);font-size:18px}
+
+/* tabs */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:18px;overflow-x:auto}
+.tab{background:none;border:0;padding:9px 14px;font-weight:600;font-size:14px;color:var(--muted);
+  border-bottom:2px solid transparent;white-space:nowrap}
+.tab.on{color:var(--plum);border-bottom-color:var(--plum)}
+
+/* filter bar */
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.filters input,.filters select{padding:8px 11px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);font-size:13.5px}
+.filters input:focus,.filters select:focus{outline:none;border-color:var(--plum)}
+
+/* invoice */
+.inv-paper{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:26px}
+.inv-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--plum);padding-bottom:14px;margin-bottom:16px;gap:16px}
+.inv-head .mono{font-family:var(--f-display);line-height:1}
+.inv-head .mono b{display:block;font-size:34px;font-weight:800;letter-spacing:1.5px}
+.inv-head .mono em{display:block;font-style:normal;font-size:12px;font-weight:500;letter-spacing:.5em;color:var(--gold);margin-top:4px}
+.inv-no{text-align:left;font-size:13px;color:var(--muted)}
+.inv-no b{display:block;font-family:var(--f-display);font-size:19px;color:var(--ink);letter-spacing:0}
+.inv-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;font-size:13.5px;margin-bottom:18px}
+.inv-meta .k{color:var(--muted);font-size:12px}
+.pay-log{font-size:13px;color:var(--muted);border-top:1px dashed var(--line);margin-top:12px;padding-top:10px}
+.stamp{display:inline-block;border:2px solid var(--sage);color:var(--sage);font-family:var(--f-display);
+  padding:4px 14px;border-radius:6px;transform:rotate(-4deg);font-size:15px}
+.stamp.due{border-color:var(--clay);color:var(--clay)}
+
+/* toast */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;
+  padding:11px 20px;border-radius:30px;font-size:14px;font-weight:500;opacity:0;pointer-events:none;transition:all .25s;z-index:90}
+#toast.show{opacity:1;transform:translateX(-50%)}
+
+/* mobile */
+@media (max-width:900px){
+  #login{grid-template-columns:1fr}
+  .login-brand{padding:30px 26px}
+  .monogram{font-size:52px}
+  #app{grid-template-columns:1fr}
+  .side{position:fixed;bottom:0;top:auto;height:auto;width:100%;flex-direction:row;overflow-x:auto;
+    border-left:0;border-top:1px solid var(--line);gap:2px;z-index:50;
+    padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px))}
+  .side .logo,.side .tag,.side-foot .who,.syncbar{display:none}
+  .side-foot{margin:0;border:0;padding:0;display:flex}
+  .nav{flex-direction:column;gap:3px;font-size:10.5px;padding:6px 9px;min-width:60px;justify-content:center;text-align:center}
+  .nav .ic{font-size:17px}
+  .nav .count{position:absolute;top:2px;left:6px;margin:0}
+  .nav{position:relative}
+  .main{padding:calc(18px + env(safe-area-inset-top,0px)) 14px calc(110px + env(safe-area-inset-bottom,0px))}
+  .g4,.g3,.g2,.g-2-1,.row-2,.row-3{grid-template-columns:1fr}
+  .page-head h1{font-size:22px}
+  .rail::before{right:58px}
+  .board{grid-template-columns:1fr}
+  .quick{flex-direction:column}
+  .quick #tqTitle{min-width:0}
+  .cal{gap:3px}
+  .cal .cell{min-height:56px;padding:4px}
+  .cal .pill,.cal .more{display:none}
+  .cal .dow{font-size:10px}
+  .cal .sum{font-size:9.5px;margin-top:2px}
+  .slot{grid-template-columns:58px 1fr}
+  .appt{margin-inline-start:12px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+
+/* print */
+@media print{
+  body{background:#fff}
+  .side,.page-head .tools,.tabs,.filters,.no-print,#toast{display:none !important}
+  #app{grid-template-columns:1fr}
+  .main{padding:0}
+  .overlay{position:static;background:none;padding:0;backdrop-filter:none}
+  body:has(.overlay) #app{display:none}
+  .modal{box-shadow:none;max-width:100%}
+  .modal-head,.modal-foot{display:none}
+  .inv-paper{border:0;padding:0}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="modal-host"></div>
+<div id="toast"></div>
+<script>
+(function(){
+"use strict";
+/* ========== 1. CONFIG, STATE, CLOUD ========== */
+const CFGK='ra_cfg_v1', SESK='ra_ses_v1', CACHE='ra_cache_v1';
+let S=null, ME=null, VIEW='home', TAB={acc:'invoices',bk:'day'}, D={}, CFG=null, SES=null, POLL=null;
+let SYNC={at:null,err:null};
+const LS={ get(k){ try{ return JSON.parse(localStorage.getItem(k)||'null') }catch(e){ return null } },
+           set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)) }catch(e){} },
+           del(k){ try{ localStorage.removeItem(k) }catch(e){} } };
+
+const uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const today=()=>new Date().toLocaleDateString('sv-SE');
+const monthOf=d=>(d||today()).slice(0,7);
+const money=n=>(Math.round((+n||0)*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fdate=d=>{ if(!d) return '—'; try{ return new Date(d+'T00:00').toLocaleDateString('ar-u-nu-latn',{weekday:'long',day:'numeric',month:'long'}) }catch(e){ return d } };
+const fdateShort=d=>{ if(!d) return '—'; const p=String(d).split('-'); return p[2]+'/'+p[1]+'/'+p[0] };
+const ftime=t=>{ if(!t) return ''; let[h,m]=t.split(':').map(Number); const s=h<12?'ص':'م'; h=h%12||12; return h+':'+String(m).padStart(2,'0')+' '+s };
+const byId=(arr,id)=>(arr||[]).find(x=>x.id===id)||null;
+const sum=(arr,f)=>(arr||[]).reduce((a,b)=>a+(+f(b)||0),0);
+const isOwner=()=>!!ME&&ME.role==='owner';
+
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2600); }
+
+/* ---------- cloud API (Supabase REST — no libraries) ---------- */
+const mailOf=u=>String(u).toLowerCase().trim().replace(/[^a-z0-9._-]/g,'')+'@ra-beauty.app';
+const nameOfMail=e=>String(e||'').split('@')[0];
+
+async function api(path,opts={}){
+  const o=Object.assign({},opts); const retry=o._retry; delete o._retry;
+  const r=await fetch(CFG.url+path,Object.assign({},o,{headers:Object.assign({
+    'apikey':CFG.key,
+    'Authorization':'Bearer '+((SES&&SES.access_token)||CFG.key),
+    'Content-Type':'application/json'},o.headers||{})}));
+  if(r.status===401&&SES&&SES.refresh_token&&!retry){
+    if(await refreshSession()) return api(path,Object.assign({},opts,{_retry:true}));
+  }
+  const txt=await r.text();
+  let j=null; try{ j=txt?JSON.parse(txt):null }catch(e){}
+  if(!r.ok) throw new Error((j&&(j.error_description||j.msg||j.message||j.hint))||('خطأ اتصال '+r.status));
+  return j;
+}
+async function signIn(username,password){
+  const r=await fetch(CFG.url+'/auth/v1/token?grant_type=password',{method:'POST',
+    headers:{'apikey':CFG.key,'Content-Type':'application/json'},
+    body:JSON.stringify({email:mailOf(username),password})});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(j.error_description||j.msg||j.message||'تعذّر تسجيل الدخول');
+  SES=j; LS.set(SESK,j); return j;
+}
+async function refreshSession(){
+  try{
+    const r=await fetch(CFG.url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',
+      headers:{'apikey':CFG.key,'Content-Type':'application/json'},
+      body:JSON.stringify({refresh_token:SES.refresh_token})});
+    if(!r.ok) return false;
+    SES=await r.json(); LS.set(SESK,SES); return true;
+  }catch(e){ return false }
+}
+async function signUpUser(username,password,meta){
+  const r=await fetch(CFG.url+'/auth/v1/signup',{method:'POST',
+    headers:{'apikey':CFG.key,'Content-Type':'application/json'},
+    body:JSON.stringify({email:mailOf(username),password,data:meta||{}})});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(j.error_description||j.msg||j.message||'تعذّر إنشاء الحساب');
+  return j.user||j;
+}
+function signOutLocal(){ SES=null; ME=null; LS.del(SESK); if(POLL) clearInterval(POLL); POLL=null; }
+
+/* ---------- data: everything lives in one `records` table ---------- */
+const KINDS={service:'services',item:'items',booking:'bookings',invoice:'invoices',movement:'movements',expense:'expenses',client:'clients',package:'packages',sub:'subs',task:'tasks',occasion:'occasions',settle:'settles'};
+const KIND_OF={services:'service',items:'item',bookings:'booking',invoices:'invoice',movements:'movement',expenses:'expense',clients:'client',packages:'package',subs:'sub',tasks:'task',occasions:'occasion',settles:'settle'};
+const DEFAULT_SETTINGS={biz:'RA Beauty',tagline:'خدمات التجميل المنزلية',phone:'',transport:30};
+
+function blank(){ const o={settings:Object.assign({},DEFAULT_SETTINGS),users:[]};
+  Object.values(KINDS).forEach(k=>o[k]=[]); return o }
+
+async function pull(){
+  const [rows,profs]=await Promise.all([
+    api('/rest/v1/records?select=id,kind,data'),
+    api('/rest/v1/profiles?select=id,name,username,title,role,color')
+  ]);
+  const st=blank();
+  st.users=(profs||[]).map(p=>({id:p.id,name:p.name||p.username,username:p.username,title:p.title||'',
+                                role:p.role||'staff',color:p.color||'#6B2E5F'}));
+  (rows||[]).forEach(r=>{
+    if(r.kind==='setting'){ st.settings=Object.assign(st.settings,r.data||{}) }
+    else if(KINDS[r.kind]) st[KINDS[r.kind]].push(r.data);
+  });
+  S=st; LS.set(CACHE,S); SYNC={at:new Date(),err:null}; paintSync();
+  return S;
+}
+async function put(bucket,obj){
+  const kind=KIND_OF[bucket]; if(!kind) return;
+  try{
+    await api('/rest/v1/records',{method:'POST',
+      headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
+      body:JSON.stringify({id:obj.id,kind:kind,data:obj,updated_at:new Date().toISOString()})});
+    SYNC={at:new Date(),err:null};
+  }catch(e){ SYNC.err=e.message; toast('تعذّر الحفظ في السحابة: '+e.message) }
+  LS.set(CACHE,S); paintSync();
+}
+async function rm(id){
+  try{ await api('/rest/v1/records?id=eq.'+encodeURIComponent(id),{method:'DELETE'}); SYNC={at:new Date(),err:null} }
+  catch(e){ SYNC.err=e.message; toast('تعذّر الحذف من السحابة: '+e.message) }
+  LS.set(CACHE,S); paintSync();
+}
+async function putSettings(){
+  try{ await api('/rest/v1/records',{method:'POST',
+    headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
+    body:JSON.stringify({id:'settings',kind:'setting',data:S.settings,updated_at:new Date().toISOString()})});
+    SYNC={at:new Date(),err:null};
+  }catch(e){ SYNC.err=e.message; toast('تعذّر حفظ الإعدادات: '+e.message) }
+  paintSync();
+}
+async function putProfile(p){
+  try{ await api('/rest/v1/profiles',{method:'POST',
+    headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(p)}); SYNC={at:new Date(),err:null} }
+  catch(e){ SYNC.err=e.message; toast('تعذّر حفظ بيانات العضوة: '+e.message) }
+  paintSync();
+}
+function syncText(){
+  if(SYNC.err) return '⚠︎ آخر مزامنة فشلت';
+  if(!SYNC.at) return 'جارٍ المزامنة…';
+  return '✓ متزامن ' + SYNC.at.toLocaleTimeString('ar-u-nu-latn',{hour:'2-digit',minute:'2-digit'});
+}
+function paintSync(){ const el=document.getElementById('syncBar'); if(el){ el.textContent=syncText(); el.style.color=SYNC.err?'var(--clay)':'var(--muted)' } }
+function startPoll(){
+  if(POLL) clearInterval(POLL);
+  POLL=setInterval(async()=>{
+    if(!ME||document.getElementById('modal-host').innerHTML) return;
+    try{ await pull(); render() }catch(e){ SYNC.err=e.message; paintSync() }
+  },20000);
+}
+
+/* ---------- first-run catalog (only if the database is empty) ---------- */
+function seedCatalog(){
+  return {
+    services:[
+      {id:'s1',name:'مانيكير',cat:'أظافر',price:60,dur:45},
+      {id:'s2',name:'بديكير',cat:'أظافر',price:70,dur:50},
+      {id:'s3',name:'تركيب أظافر جل',cat:'أظافر',price:180,dur:90},
+      {id:'s4',name:'تعبئة أظافر',cat:'أظافر',price:120,dur:60},
+      {id:'s5',name:'رفع أظافر',cat:'أظافر',price:50,dur:30},
+      {id:'s6',name:'تنظيف بشرة',cat:'بشرة',price:250,dur:60},
+      {id:'s7',name:'مكياج سهرة',cat:'مكياج',price:400,dur:75},
+      {id:'s8',name:'سيشوار',cat:'شعر',price:120,dur:45},
+      {id:'s9',name:'حمام مغربي',cat:'جسم',price:200,dur:60},
+      {id:'s10',name:'حناء يد',cat:'حناء',price:80,dur:30}
+    ],
+    items:[
+      {id:'i1',name:'جل أظافر شفاف',cat:'أظافر',unit:'عبوة',qty:6,min:3,cost:45,cost0:45,supplier:''},
+      {id:'i2',name:'مزيل أظافر (أسيتون)',cat:'أظافر',unit:'لتر',qty:3,min:3,cost:25,cost0:25,supplier:''},
+      {id:'i3',name:'مبرد أظافر',cat:'أظافر',unit:'حبة',qty:24,min:10,cost:3,cost0:3,supplier:''},
+      {id:'i4',name:'قفازات لاتكس',cat:'مستهلكات',unit:'علبة',qty:4,min:2,cost:20,cost0:20,supplier:''},
+      {id:'i5',name:'مناشف استخدام مرة',cat:'مستهلكات',unit:'رزمة',qty:3,min:2,cost:35,cost0:35,supplier:''},
+      {id:'i6',name:'ماسك تنظيف بشرة',cat:'بشرة',unit:'عبوة',qty:5,min:2,cost:60,cost0:60,supplier:''}
+    ]
+  };
+}
+async function seedIfEmpty(){
+  if(!isOwner()||S.services.length||S.items.length) return;
+  const c=seedCatalog();
+  S.services=c.services; S.items=c.items;
+  for(const s of c.services) await put('services',s);
+  for(const i of c.items) await put('items',i);
+  const occ=seedOccasions(); S.occasions=occ;
+  for(const x of occ) await put('occasions',x);
+  await api('/rest/v1/records',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
+    body:JSON.stringify({id:'settings',kind:'setting',data:S.settings,updated_at:new Date().toISOString()})}).catch(()=>{});
+}
+
+/* ========== 2. DERIVED ========== */
+const lowStock=()=>S.items.filter(i=>i.qty<=i.min);
+const bookingTotal=b=>Math.max(0, sum(b.lines,l=>l.price*(l.qty||1)) + (+b.transport||0) - (+b.discount||0));
+const visibleBookings=()=>isOwner()?S.bookings:S.bookings.filter(b=>b.staffId===ME.id);
+const visibleInvoices=()=>{ if(isOwner()) return S.invoices; const ids=new Set(visibleBookings().map(b=>b.id)); return S.invoices.filter(v=>ids.has(v.bookingId)); };
+const invPaid=v=>sum(v.payments||[],p=>p.amount);
+const invStatus=v=>{ const p=invPaid(v); if(p<=0) return 'due'; if(p+0.009<v.total) return 'partial'; return 'paid'; };
+const staffName=id=>{ const u=byId(S.users,id); return u?u.name:'—' };
+const staffColor=id=>{ const u=byId(S.users,id); return u?u.color:'#7A6873' };
+
+const ST={
+  confirmed:{ar:'مؤكد',c:'plum'}, active:{ar:'جاري التنفيذ',c:'gold'},
+  done:{ar:'تم',c:'sage'}, cancelled:{ar:'ملغي',c:'grey'}
+};
+const PAYST={paid:{ar:'مدفوعة',c:'sage'},partial:{ar:'مدفوعة جزئياً',c:'gold'},due:{ar:'غير مدفوعة',c:'clay'}};
+
+function nextInvNo(){
+  let max=1000;
+  S.invoices.forEach(v=>{ const n=parseInt(String(v.no).replace(/\D/g,''),10)||0; if(n>max) max=n });
+  return 'INV-'+(max+1);
+}
+function syncInvoice(b){
+  if(b.status!=='done') return null;
+  let v=S.invoices.find(x=>x.bookingId===b.id);
+  const lines=b.lines.map(l=>({name:l.name,price:l.price,qty:l.qty||1}));
+  if(!v){
+    v={id:uid('v'),no:nextInvNo(),bookingId:b.id,client:b.client,phone:b.phone,date:b.date,staffId:b.staffId,
+       lines:lines,transport:+b.transport||0,discount:+b.discount||0,total:bookingTotal(b),payments:[],
+       createdAt:new Date().toISOString()};
+    S.invoices.push(v);
+  }else{
+    v.lines=lines; v.transport=+b.transport||0; v.discount=+b.discount||0;
+    v.total=bookingTotal(b); v.client=b.client; v.phone=b.phone; v.date=b.date; v.staffId=b.staffId;
+  }
+  return v;
+}
+function upsertClient(b){
+  let c=S.clients.find(x=>x.phone&&b.phone&&x.phone===b.phone)||S.clients.find(x=>x.name===b.client);
+  if(!c){ c={id:uid('c'),name:b.client,phone:b.phone||'',area:b.area||'',notes:''}; S.clients.push(c) }
+  else { c.name=b.client; if(b.phone) c.phone=b.phone; if(b.area) c.area=b.area }
+  return c;
+}
+
+/* ========== 3. BOOT ========== */
+async function boot(){
+  CFG=LS.get(CFGK);
+  if(!CFG||!CFG.url||!CFG.key){ S=blank(); render(); return }
+  SES=LS.get(SESK);
+  S=LS.get(CACHE)||blank();
+  if(SES&&SES.access_token){
+    try{
+      const me=await api('/auth/v1/user');
+      await afterAuth(me.id);
+      return;
+    }catch(e){ signOutLocal(); }
+  }
+  render();
+}
+async function afterAuth(userId){
+  await pull();
+  ME=S.users.find(u=>u.id===userId)||null;
+  if(!ME){ signOutLocal(); render(); toast('الحساب غير مفعّل — يُرجى مراجعة إدارة الحساب'); return }
+  await seedIfEmpty();
+  VIEW='home'; D={}; render(); startPoll();
+}
+document.addEventListener('DOMContentLoaded',boot);
+
+/* ========== 4. SHELL ========== */
+const root=()=>document.getElementById('root');
+function render(){
+  root().innerHTML = !CFG ? setupView() : (ME ? shell() : loginView());
+  paintSync();
+  try{ window.scrollTo({top:0}) }catch(e){}
+}
+function setupView(err){
+  return `<div id="login">
+    <div class="login-brand">
+      <div><div class="monogram"><b>RA</b><em>BEAUTY</em></div><div class="brand-rule"></div>
+        <p>ربط النظام بقاعدة بياناتك السحابية — مرة واحدة على كل جهاز.</p></div>
+      <div class="brand-foot">بعد الربط يعمل الفريق على البيانات نفسها لحظياً</div>
+    </div>
+    <div class="login-panel"><div class="login-card">
+      <h2>إعداد الاتصال</h2>
+      <p class="sub">انسخي القيمتين من لوحة Supabase ← Project Settings ← API</p>
+      ${err?`<div class="err">${esc(err)}</div>`:''}
+      <div class="field"><label>Project URL</label><input id="cfgUrl" dir="ltr" placeholder="https://xxxx.supabase.co"></div>
+      <div class="field"><label>anon public key</label><input id="cfgKey" dir="ltr" placeholder="eyJhbGciOi..."></div>
+      <button class="btn block" data-act="cfg-save">حفظ ومتابعة</button>
+      <p style="font-size:12.5px;color:var(--muted);margin-top:14px">
+        هذه المفاتيح عامة ومخصّصة للاستخدام في المتصفح؛ الحماية تعتمد على قواعد الوصول في قاعدة البيانات لا على إخفاء المفتاح.</p>
+    </div></div>
+  </div>`;
+}
+function loginView(err){
+  return `<div id="login">
+    <div class="login-brand">
+      <div>
+        <div class="monogram"><b>RA</b><em>BEAUTY</em></div>
+        <div class="brand-rule"></div>
+        <p>نظام إدارة الحجوزات والمخزون والفواتير — خدمات التجميل المنزلية.</p>
+      </div>
+      <div class="brand-foot">دخول خاص بفريق العمل · لكل عضوة في الفريق صلاحيات محدّدة</div>
+    </div>
+    <div class="login-panel"><div class="login-card">
+      <h2>تسجيل الدخول</h2>
+      <p class="sub">أدخلي اسم المستخدم وكلمة المرور</p>
+      <div id="loginErr">${err?`<div class="err">${esc(err)}</div>`:''}</div>
+      <div class="field"><label>اسم المستخدم</label><input id="lu" dir="ltr" autocomplete="username" placeholder="amal"></div>
+      <div class="field"><label>كلمة المرور</label><input id="lp" type="password" autocomplete="current-password" placeholder="••••••"></div>
+      <button class="btn block" data-act="login" id="loginBtn">دخول</button>
+      <p style="font-size:12.5px;color:var(--muted);margin-top:16px;text-align:center">
+        <a href="#" data-act="cfg-reset">تغيير إعدادات الاتصال</a></p>
+    </div></div>
+  </div>`;
+}
+
+function navItems(){
+  const low=lowStock().length;
+  const all=[
+    {v:'home',ic:'◈',t:'الرئيسية'},
+    {v:'bookings',ic:'✦',t:'الحجوزات'},
+    {v:'inventory',ic:'▤',t:'المخزون',n:low},
+    {v:'accounting',ic:'₪',t:'الفواتير والمحاسبة'},
+    {v:'tasks',ic:'☑',t:'المهام',n:myTasks().length},
+    {v:'clients',ic:'♢',t:'الزبائن',owner:true},
+    {v:'services',ic:'✧',t:'الخدمات والأسعار',owner:true},
+    {v:'team',ic:'☖',t:'فريق العمل',owner:true}
+  ];
+  return all.filter(i=>!i.owner||isOwner());
+}
+function shell(){
+  const nav=navItems().map(i=>`<button class="nav ${VIEW===i.v?'on':''}" data-act="nav" data-v="${i.v}">
+      <span class="ic">${i.ic}</span><span>${i.t}</span>${i.n?`<span class="count">${i.n}</span>`:''}</button>`).join('');
+  const views={home:vHome,bookings:vBookings,inventory:vInventory,accounting:vAccounting,tasks:vTasks,clients:vClients,services:vServices,team:vTeam};
+  let body='';
+  try{ body=(views[VIEW]||vHome)(); }catch(e){ console.error(e); body=`<div class="card"><div class="empty"><div class="big">تعذّر عرض الصفحة</div>${esc(e.message)}</div></div>` }
+  return `<div id="app">
+    <aside class="side">
+      <div class="logo"><b>RA</b><em>BEAUTY</em></div>
+      <div class="tag">${esc(S.settings.tagline||'')}</div>
+      ${nav}
+      <div class="side-foot">
+        <div class="who">
+          <div class="avatar" style="background:${ME.color}">${esc(ME.name[0])}</div>
+          <div><div class="nm">${esc(ME.name)}</div><div class="rl">${esc(ME.title||'')}</div></div>
+        </div>
+        <button class="nav" data-act="pwd"><span class="ic">✎</span><span>كلمة المرور</span></button>
+        <button class="nav" data-act="logout"><span class="ic">⏻</span><span>خروج</span></button>
+        <div class="syncbar" id="syncBar" data-act="sync" title="تحديث الآن"></div>
+      </div>
+    </aside>
+    <main class="main">${body}</main>
+  </div>`;
+}
+function head(title,desc,tools){
+  return `<div class="page-head"><div><h1>${title}</h1><div class="desc">${desc||''}</div></div><div class="tools">${tools||''}</div></div>`;
+}
+
+/* ========== 5. HOME ========== */
+function vHome(){
+  const t=today(), m=monthOf(t);
+  const mine=visibleBookings();
+  const dayList=mine.filter(b=>b.date===t).sort((a,b)=>a.time.localeCompare(b.time));
+  const monthInv=visibleInvoices().filter(v=>monthOf(v.date)===m);
+  const collected=sum(monthInv,v=>invPaid(v));
+  const billed=sum(monthInv,v=>v.total);
+  const due=billed-collected;
+  const low=lowStock();
+  const upcoming=mine.filter(b=>b.date>t&&b.status!=='cancelled').sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).slice(0,5);
+
+  const stats=`<div class="grid g4" style="margin-bottom:16px">
+    <div class="card stat accent"><div class="lbl">حجوزات اليوم</div><div class="val">${dayList.filter(b=>b.status!=='cancelled').length}</div>
+      <div class="note">${fdate(t)}</div></div>
+    <div class="card stat"><div class="lbl">محصّل هذا الشهر</div><div class="val">${money(collected)}<small>ر.ق</small></div>
+      <div class="note">من إجمالي ${money(billed)} ر.ق</div></div>
+    <div class="card stat"><div class="lbl">مبالغ متبقٍّة</div><div class="val" style="color:${due>0?'var(--clay)':'inherit'}">${money(due)}<small>ر.ق</small></div>
+      <div class="note">${monthInv.filter(v=>invStatus(v)!=='paid').length} فاتورة غير مسددة</div></div>
+    <div class="card stat"><div class="lbl">أصناف تحت الحد</div><div class="val" style="color:${low.length?'var(--clay)':'inherit'}">${low.length}</div>
+      <div class="note">${low.length?'بحاجة إلى تعبئة':'المخزون في وضع جيد'}</div></div>
+  </div>`;
+
+  return head(`أهلاً  ${esc(ME.name)}`,'ملخّص اليوم وأبرز ما يستدعي المتابعة',
+      `<button class="btn" data-act="bk-new">+ حجز جديد</button>`)
+    + stats
+    + `<div class="grid g-2-1">
+        <div class="card"><h3>يوم اليوم</h3><div class="card-sub">${fdate(t)}</div>${rail(dayList)}</div>
+        <div>
+          <div class="card" style="margin-bottom:16px"><h3>تنبيه المخزون</h3><div class="card-sub">أصناف وصلت إلى الحد الأدنى</div>
+            ${low.length?low.map(i=>`<div class="alert-row"><span class="dot" style="background:${i.qty<=0?'var(--clay)':'var(--gold)'}"></span>
+               <span>${esc(i.name)}</span><span class="qty num" style="color:${i.qty<=0?'var(--clay)':'var(--gold)'}">${i.qty} ${esc(i.unit)}</span></div>`).join('')
+              :'<div class="empty" style="padding:18px">جميع الأصناف أعلى من الحد الأدنى</div>'}
+            <button class="btn ghost sm" style="margin-top:12px;width:100%" data-act="nav" data-v="inventory">فتح المخزون</button>
+          </div>
+          ${(function(){const mt=myTasks().sort(taskSort).slice(0,4);
+            return `<div class="card" style="margin-bottom:16px"><h3>مهامي</h3>
+              <div class="card-sub">${myTasks().length} مهمة مفتوحة باسمك</div>
+              ${mt.length?mt.map(t=>{const late=t.due&&t.due<today();
+                return `<div class="alert-row" data-act="task-open" data-id="${t.id}" style="cursor:pointer">
+                  <button class="tick" data-act="task-toggle" data-id="${t.id}"></button>
+                  <span>${esc(t.title)}${t.due?`<br><span style="font-size:12px;color:${late?'var(--clay)':'var(--muted)'}">${late?'متأخرة · ':''}${fdateShort(t.due)}</span>`:''}</span>
+                </div>`}).join(''):'<div class="empty" style="padding:18px">لا توجد مهام مفتوحة</div>'}
+              <button class="btn ghost sm" style="margin-top:12px;width:100%" data-act="nav" data-v="tasks">فتح المهام</button>
+            </div>`})()}
+          <div class="card"><h3>حجوزات جاية</h3><div class="card-sub">أقرب ${upcoming.length} مواعيد</div>
+            ${upcoming.length?upcoming.map(b=>`<div class="alert-row" data-act="bk-open" data-id="${b.id}" style="cursor:pointer">
+                <span class="dot" style="background:${staffColor(b.staffId)}"></span>
+                <span><b>${esc(b.client)}</b><br><span style="font-size:12px;color:var(--muted)">${fdateShort(b.date)} · ${ftime(b.time)}</span></span>
+                <span class="qty num">${money(bookingTotal(b))}</span></div>`).join('')
+              :'<div class="empty" style="padding:18px">لا توجد حجوزات قادمة</div>'}
+          </div>
+        </div>
+      </div>`;
+}
+function rail(list){
+  if(!list.length) return `<div class="empty"><div class="big">لا مواعيد اليوم</div>لا توجد حجوزات مسجّلة في هذا اليوم<br>
+     <button class="btn" data-act="bk-new">+ أضيفي حجزاً</button></div>`;
+  return `<div class="rail">`+list.map(b=>{
+    const st=ST[b.status]||ST.confirmed;
+    const dur=b.lines.reduce((a,l)=>{const s=byId(S.services,l.sid); return a+((s?s.dur:30)*(l.qty||1))},0);
+    return `<div class="slot ${b.status==='done'?'done':''} ${b.status==='cancelled'?'cancel':''}">
+      <div class="t">${ftime(b.time)}<em>${dur} د</em></div>
+      <div class="appt" style="border-inline-start-color:${staffColor(b.staffId)}" data-act="bk-open" data-id="${b.id}">
+        <div class="top"><span class="cn">${esc(b.client)}</span><span class="chip ${st.c}">${st.ar}</span></div>
+        <div class="sv">${b.lines.map(l=>esc(l.name)+(l.qty>1?' ×'+l.qty:'')).join(' · ')||'بدون خدمات'}</div>
+        <div class="meta">
+          <span>◷ ${esc(b.area||'—')}</span>
+          <span><span class="dot" style="background:${staffColor(b.staffId)}"></span> ${esc(staffName(b.staffId))}</span>
+          ${b.phone?`<span>☎ ${esc(b.phone)}</span>`:''}
+          <span class="price num">${money(bookingTotal(b))} ر.ق</span>
+        </div>
+      </div></div>`;
+  }).join('')+`</div>`;
+}
+
+/* ========== 6. BOOKINGS ========== */
+function vBookings(){
+  const nowY=String(new Date().getFullYear());
+  const f=D.bf=Object.assign({date:today(),month:monthOf(today()),year:nowY,status:'',staff:'',q:''},D.bf||{});
+  const all=visibleBookings();
+  const list=all.slice().sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  const staffOpts=S.users.map(u=>`<option value="${u.id}" ${f.staff===u.id?'selected':''}>${esc(u.name)}</option>`).join('');
+  const tabs=`<div class="tabs">
+    <button class="tab ${TAB.bk==='day'?'on':''}" data-act="tab" data-k="bk" data-v="day">اليوم</button>
+    <button class="tab ${TAB.bk==='month'?'on':''}" data-act="tab" data-k="bk" data-v="month">الشهر</button>
+    <button class="tab ${TAB.bk==='year'?'on':''}" data-act="tab" data-k="bk" data-v="year">السنة</button>
+    <button class="tab ${TAB.bk==='dates'?'on':''}" data-act="tab" data-k="bk" data-v="dates">التواريخ المهمة</button>
+    <button class="tab ${TAB.bk==='list'?'on':''}" data-act="tab" data-k="bk" data-v="list">كل الحجوزات (${list.length})</button>
+  </div>`;
+  const headline=head('الحجوزات','تسجيل المواعيد وتعديل الخدمات وإغلاق الموعد بعد إتمامه',
+    `<button class="btn quiet" data-act="occ-manage">المناسبات</button>
+     <button class="btn" data-act="bk-new">+ حجز جديد</button>`)+tabs;
+
+  if(TAB.bk==='dates') return head('التواريخ المهمة','مناسبات السنة كاملة لتخطيط العروض والباقات والجدول',
+      `<button class="btn" data-act="bk-new">+ حجز جديد</button>`)+tabs+datesTab(f);
+
+  /* ---------- month calendar ---------- */
+  if(TAB.bk==='month'){
+    const m=f.month||monthOf(today());
+    const Y=+m.slice(0,4), M=+m.slice(5,7);
+    const daysIn=new Date(Y,M,0).getDate(), startDow=new Date(Y,M-1,1).getDay();
+    const inMonth=all.filter(b=>monthOf(b.date)===m);
+    const live=inMonth.filter(b=>b.status!=='cancelled');
+    const dow=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+    const OM=occMap(Y);
+    let cells='';
+    for(let i=0;i<startDow;i++) cells+=`<div class="cell empty"></div>`;
+    for(let d=1;d<=daysIn;d++){
+      const ds=`${Y}-${String(M).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const day=live.filter(b=>b.date===ds).sort((a,b)=>a.time.localeCompare(b.time));
+      const tot=sum(day,bookingTotal);
+      cells+=`<div class="cell ${day.length?'has':''} ${ds===today()?'today':''} ${(OM[ds]||[]).length?'occ-day':''}" data-act="open-day" data-d="${ds}">
+        <div class="dnum">${d}</div>
+        ${(OM[ds]||[]).map(oc=>`<span class="occ" title="${esc(oc.note||'')}">${esc(oc.name)}</span>`).join('')}
+        ${day.slice(0,2).map(b=>`<span class="pill" style="border-inline-start:3px solid ${staffColor(b.staffId)}">${ftime(b.time)} ${esc(b.client)}</span>`).join('')}
+        ${day.length>2?`<div class="more">+${day.length-2} غيرها</div>`:''}
+        ${day.length?`<div class="sum"><b>${day.length}</b> موعد · ${money(tot)}</div>`:''}
+      </div>`;
+    }
+    return headline+`
+      <div class="filters">
+        <button class="btn quiet sm" data-act="bf-mshift" data-s="-1">‹ الشهر السابق</button>
+        <input type="month" value="${m}" data-act="bf" data-k="month">
+        <button class="btn quiet sm" data-act="bf-mshift" data-s="1">الشهر التالي ›</button>
+      </div>
+      <div class="grid g3" style="margin-bottom:16px">
+        <div class="card stat"><div class="lbl">مواعيد الشهر</div><div class="val">${live.length}</div>
+          <div class="note">${inMonth.length-live.length} ملغي</div></div>
+        <div class="card stat"><div class="lbl">منجزة</div><div class="val" style="color:var(--sage)">${inMonth.filter(b=>b.status==='done').length}</div></div>
+        <div class="card stat accent"><div class="lbl">إجمالي الشهر</div><div class="val">${money(sum(live,bookingTotal))}<small>ر.ق</small></div></div>
+      </div>
+      <div class="card"><h3>${new Date(Y,M-1,1).toLocaleDateString('ar-u-nu-latn',{month:'long',year:'numeric'})}</h3>
+        <div class="card-sub">اضغطي على أي يوم لعرض مواعيده</div>
+        <div class="cal">${dow.map(d=>`<div class="dow">${d}</div>`).join('')}${cells}</div></div>
+      ${(function(){
+        const ks=Object.keys(OM).filter(k=>k.slice(0,7)===m).sort();
+        if(!ks.length) return '';
+        return `<div class="card" style="margin-top:16px"><h3>مناسبات هذا الشهر</h3>
+          <div class="card-sub">فرص لإطلاق عرض أو باقة قبلها بوقت كافٍ</div>
+          ${ks.map(k=>OM[k].map(oc=>`<div class="alert-row">
+            <span class="chip gold">${fdateShort(k)}</span>
+            <span><b>${esc(oc.name)}</b>${oc.note?`<br><span style="font-size:12px;color:var(--muted)">${esc(oc.note)}</span>`:''}</span>
+            <span class="qty" style="font-size:11.5px;color:var(--muted);font-weight:400">${occKindLabel(oc)}</span></div>`).join('')).join('')}
+          <button class="btn ghost sm" style="margin-top:12px" data-act="occ-manage">إدارة المناسبات</button></div>`})()}`;
+  }
+
+  /* ---------- year overview ---------- */
+  if(TAB.bk==='year'){
+    const y=f.year||nowY;
+    const years=[...new Set(all.map(b=>b.date.slice(0,4)).concat([nowY]))].sort().reverse();
+    const OMy=occMap(+y);
+    const months=[];
+    for(let i=1;i<=12;i++){
+      const mk=`${y}-${String(i).padStart(2,'0')}`;
+      const bs=all.filter(b=>monthOf(b.date)===mk&&b.status!=='cancelled');
+      const occ=Object.keys(OMy).filter(k=>k.slice(0,7)===mk).sort().reduce((a,k)=>a.concat(OMy[k]),[]);
+      months.push({mk,i,n:bs.length,r:sum(bs,bookingTotal),done:bs.filter(b=>b.status==='done').length,occ});
+    }
+    const maxR=Math.max(1,...months.map(x=>x.r));
+    const totalN=sum(months,x=>x.n), totalR=sum(months,x=>x.r);
+    return headline+`
+      <div class="filters">
+        <select data-act="bf" data-k="year">${years.map(v=>`<option value="${v}" ${y===v?'selected':''}>${v}</option>`).join('')}</select>
+      </div>
+      <div class="grid g2" style="margin-bottom:16px">
+        <div class="card stat"><div class="lbl">مواعيد السنة</div><div class="val">${totalN}</div></div>
+        <div class="card stat accent"><div class="lbl">إجمالي السنة</div><div class="val">${money(totalR)}<small>ر.ق</small></div></div>
+      </div>
+      <div class="grid g4">${months.map(x=>`
+        <div class="card month-card ${x.n?'':'off'}" data-act="open-month" data-m="${x.mk}">
+          <div class="lbl" style="font-size:12px;color:var(--muted);font-weight:600">${new Date(+y,x.i-1,1).toLocaleDateString('ar-u-nu-latn',{month:'long'})}</div>
+          <div class="val" style="font-family:var(--f-display);font-size:24px;margin-top:4px">${x.n}<small style="font-size:12px;color:var(--muted);font-family:var(--f-body)"> موعد</small></div>
+          <div style="font-size:13px;margin-top:2px"><b>${money(x.r)}</b> <span style="color:var(--muted);font-size:11.5px">ر.ق</span></div>
+          <div class="bar"><i style="width:${(x.r/maxR*100).toFixed(0)}%;background:var(--plum)"></i></div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:5px">${x.done} منجزة</div>
+          ${x.occ.length?`<div style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap">
+            ${x.occ.map(oc=>`<span class="chip gold" style="font-size:10.5px">${esc(oc.name)}</span>`).join('')}</div>`:''}
+        </div>`).join('')}</div>`;
+  }
+
+  /* ---------- full list ---------- */
+  if(TAB.bk==='list'){
+    const filtered=list.filter(b=>
+      (!f.status||b.status===f.status)&&(!f.staff||b.staffId===f.staff)&&
+      (!f.q||(b.client+' '+(b.phone||'')+' '+(b.area||'')).includes(f.q)));
+    return headline+`<div class="filters">
+      <input placeholder="بحث باسم الزبونة أو الرقم" value="${esc(f.q)}" data-act="bf" data-k="q">
+      <select data-act="bf" data-k="status"><option value="">كل الحالات</option>
+        ${Object.entries(ST).map(([k,v])=>`<option value="${k}" ${f.status===k?'selected':''}>${v.ar}</option>`).join('')}</select>
+      ${isOwner()?`<select data-act="bf" data-k="staff"><option value="">كل الفريق</option>${staffOpts}</select>`:''}
+    </div>
+    <div class="card"><div class="tbl-wrap"><table>
+      <thead><tr><th>التاريخ</th><th>الوقت</th><th>الزبونة</th><th>الخدمات</th><th>المنطقة</th><th>الأخصائية</th><th>الإجمالي</th><th>الحالة</th><th></th></tr></thead>
+      <tbody>${filtered.length?filtered.map(b=>{const st=ST[b.status]||ST.confirmed; return `<tr>
+        <td class="num">${fdateShort(b.date)}</td><td class="num">${ftime(b.time)}</td>
+        <td><b>${esc(b.client)}</b><br><span style="font-size:12px;color:var(--muted)">${esc(b.phone||'')}</span></td>
+        <td style="font-size:13px;color:var(--muted)">${b.lines.map(l=>esc(l.name)).join('، ')}</td>
+        <td>${esc(b.area||'—')}</td>
+        <td><span class="dot" style="background:${staffColor(b.staffId)}"></span> ${esc(staffName(b.staffId))}</td>
+        <td class="num"><b>${money(bookingTotal(b))}</b></td>
+        <td><span class="chip ${st.c}">${st.ar}</span></td>
+        <td><button class="btn quiet sm" data-act="bk-open" data-id="${b.id}">فتح</button></td></tr>`}).join('')
+        :`<tr><td colspan="9"><div class="empty">لا توجد حجوزات مطابقة</div></td></tr>`}</tbody>
+    </table></div></div>`;
+  }
+
+  /* ---------- day board (default) ---------- */
+  const dayList=all.filter(b=>b.date===f.date).sort((a,b)=>a.time.localeCompare(b.time));
+  const occToday=occMap(+f.date.slice(0,4))[f.date]||[];
+  return headline+`${occToday.length?`<div class="occ-strip">
+      ${occToday.map(oc=>`<b>${esc(oc.name)}</b>${oc.note?` — ${esc(oc.note)}`:''}`).join('<br>')}</div>`:''}
+    <div class="filters">
+      <input type="date" value="${f.date}" data-act="bf" data-k="date">
+      <button class="btn quiet sm" data-act="bf-today">اليوم</button>
+    </div>
+    <div class="card"><h3>${fdate(f.date)}</h3>
+      <div class="card-sub">${dayList.filter(b=>b.status!=='cancelled').length} موعد · إجمالي ${money(sum(dayList.filter(b=>b.status!=='cancelled'),bookingTotal))} ر.ق</div>
+      ${rail(dayList)}</div>`;
+}
+
+function datesTab(f){
+  const nowY=String(new Date().getFullYear());
+  const y=f.year||nowY;
+  const years=[String(+nowY-1),nowY,String(+nowY+1),String(+nowY+2)];
+  const OM=occMap(+y);
+  const all=visibleBookings();
+  const items=Object.keys(OM).sort().reduce((a,k)=>a.concat(OM[k].map(o=>({d:k,o}))),[]);
+  const t=today();
+  const daysLeft=d=>Math.round((new Date(d+'T00:00')-new Date(t+'T00:00'))/86400000);
+  const soon=items.filter(x=>x.d>=t).slice(0,3);
+  const dayName=d=>{ try{ return new Date(d+'T00:00').toLocaleDateString('ar-u-nu-latn',{weekday:'long'}) }catch(e){ return '' } };
+  const months=[];
+  for(let i=1;i<=12;i++){
+    const mk=`${y}-${String(i).padStart(2,'0')}`;
+    months.push({mk,i,list:items.filter(x=>x.d.slice(0,7)===mk),
+      bk:all.filter(b=>monthOf(b.date)===mk&&b.status!=='cancelled').length});
+  }
+  return `<div class="filters">
+      <select data-act="bf" data-k="year">${years.map(v=>`<option value="${v}" ${y===v?'selected':''}>${v}</option>`).join('')}</select>
+      <button class="btn quiet sm" data-act="occ-new">+ مناسبة جديدة</button>
+      <button class="btn quiet sm" data-act="occ-manage">قائمة المناسبات</button>
+    </div>
+    ${soon.length?`<div class="card" style="margin-bottom:16px;border-color:var(--gold)">
+      <h3>على الأبواب</h3><div class="card-sub">أقرب المناسبات — وقت الإعداد للعروض والباقات</div>
+      <div class="grid g3">${soon.map(x=>{const n=daysLeft(x.d);
+        return `<div class="soon-card" data-act="occ-edit" data-id="${x.o.id}">
+          <div class="cnt">${n===0?'اليوم':(n===1?'غداً':'بعد '+n+' يوماً')}</div>
+          <div class="nm">${esc(x.o.name)}</div>
+          <div class="dt">${dayName(x.d)} · ${fdateShort(x.d)}</div>
+          ${x.o.note?`<div class="nt">${esc(x.o.note)}</div>`:''}</div>`}).join('')}</div></div>`:''}
+    <div class="grid g3">${months.map(m=>`
+      <div class="card ${m.list.length?'':'dim'}" style="padding:14px">
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px">
+          <h3 style="font-size:15px">${GR_M[m.i-1]}</h3>
+          <span style="font-size:11.5px;color:var(--muted);margin-inline-start:auto">${m.bk} حجز</span>
+          <button class="btn quiet sm" data-act="open-month" data-m="${m.mk}">التقويم</button>
+        </div>
+        ${m.list.length?m.list.map(x=>{const n=daysLeft(x.d);
+          return `<div class="occ-row ${x.d<t?'past':''}" data-act="occ-edit" data-id="${x.o.id}">
+            <span class="d">${x.d.slice(8)}</span>
+            <span class="b"><b>${esc(x.o.name)}</b>
+              <em>${dayName(x.d)}${x.d>=t&&n<=60?` · بعد ${n} يوماً`:''}</em>
+              ${x.o.note?`<em class="nt">${esc(x.o.note)}</em>`:''}</span>
+          </div>`}).join('')
+          :'<div style="font-size:12.5px;color:var(--muted);padding:6px 0">لا توجد مناسبات</div>'}
+      </div>`).join('')}</div>`;
+}
+
+/* ========== 7. INVENTORY ========== */
+function vInventory(){
+  const f=D.inf=D.inf||{q:'',cat:''};
+  const cats=[...new Set(S.items.map(i=>i.cat))];
+  const list=S.items.filter(i=>(!f.cat||i.cat===f.cat)&&(!f.q||i.name.includes(f.q)));
+  const value=sum(S.items,i=>i.qty*i.cost);
+  const low=lowStock();
+  const moves=S.movements.slice().sort((a,b)=>b.at.localeCompare(a.at)).slice(0,25);
+
+  const tabs=`<div class="tabs">
+    <button class="tab ${TAB.inv!=='log'?'on':''}" data-act="tab" data-k="inv" data-v="items">الأصناف</button>
+    <button class="tab ${TAB.inv==='log'?'on':''}" data-act="tab" data-k="inv" data-v="log">حركة المخزون</button>
+  </div>`;
+
+  if(TAB.inv==='log'){
+    return head('المخزون','كل عملية صرف واستلام مسجّلة باسم من نفّذها','')+tabs+
+    `<div class="card"><div class="tbl-wrap"><table>
+      <thead><tr><th>التاريخ</th><th>الصنف</th><th>الحركة</th><th>الكمية</th><th>بواسطة</th><th>مرتبط بحجز</th><th>ملاحظة</th></tr></thead>
+      <tbody>${moves.length?moves.map(m=>{const it=byId(S.items,m.itemId); const b=byId(S.bookings,m.bookingId);
+        return `<tr><td class="num">${fdateShort(m.at.slice(0,10))}</td><td>${esc(it?it.name:'—')}</td>
+        <td><span class="chip ${m.type==='out'?'clay':'sage'}">${m.type==='out'?'صرف':'استلام'}</span></td>
+        <td class="num"><b>${m.type==='out'?'−':'+'}${m.qty}</b></td><td>${esc(m.by)}</td>
+        <td style="font-size:13px">${b?esc(b.client)+' · '+fdateShort(b.date):'—'}</td>
+        <td style="font-size:13px;color:var(--muted)">${esc(m.note||'')}</td></tr>`}).join('')
+        :`<tr><td colspan="7"><div class="empty">لا توجد حركات مسجّلة بعد</div></td></tr>`}</tbody></table></div></div>`;
+  }
+
+  return head('المخزون','الكميات المتوفّرة، مع تنبيه عند انخفاض الصنف عن الحد الأدنى',
+    `<button class="btn quiet" data-act="mv-out">− صرف من المخزون</button>
+     ${isOwner()?`<button class="btn quiet" data-act="mv-in">+ استلام بضاعة</button><button class="btn" data-act="item-new">+ صنف جديد</button>`:''}`)
+  +tabs
+  +`<div class="grid g3" style="margin-bottom:16px">
+      <div class="card stat"><div class="lbl">عدد الأصناف</div><div class="val">${S.items.length}</div></div>
+      <div class="card stat"><div class="lbl">قيمة المخزون</div><div class="val">${money(value)}<small>ر.ق</small></div></div>
+      <div class="card stat"><div class="lbl">تحت الحد الأدنى</div><div class="val" style="color:${low.length?'var(--clay)':'inherit'}">${low.length}</div>
+        <div class="note">${low.slice(0,3).map(i=>esc(i.name)).join('، ')||'—'}</div></div>
+    </div>
+    <div class="filters">
+      <input placeholder="بحث عن صنف" value="${esc(f.q)}" data-act="inf" data-k="q">
+      <select data-act="inf" data-k="cat"><option value="">كل الفئات</option>
+        ${cats.map(c=>`<option value="${esc(c)}" ${f.cat===c?'selected':''}>${esc(c)}</option>`).join('')}</select>
+    </div>
+    <div class="card"><div class="tbl-wrap"><table>
+      <thead><tr><th>الصنف</th><th>الفئة</th><th>المتوفر</th><th>الحد الأدنى</th><th>الحالة</th><th>سعر الشراء الأول</th><th>سعر الشراء الأخير</th><th>المتعاون</th><th></th></tr></thead>
+      <tbody>${list.length?list.map(i=>{
+        const ratio=Math.min(100,(i.qty/Math.max(1,i.min*2))*100);
+        const cls=i.qty<=0?'out':(i.qty<=i.min?'low':'');
+        const chip=i.qty<=0?'<span class="chip clay">خلص</span>':(i.qty<=i.min?'<span class="chip gold">تحت الحد</span>':'<span class="chip sage">متوفر</span>');
+        return `<tr><td><b>${esc(i.name)}</b><div class="bar"><i class="${cls}" style="width:${ratio}%"></i></div></td>
+        <td>${esc(i.cat)}</td><td class="num"><b>${i.qty}</b> ${esc(i.unit)}</td><td class="num">${i.min}</td>
+        <td>${chip}</td>
+        <td class="num" style="color:var(--muted)">${money(i.cost0!=null?i.cost0:i.cost)}</td>
+        <td class="num"><b>${money(i.cost)}</b>
+          ${(function(){const b=(i.cost0!=null?i.cost0:i.cost);
+            if(!b||Math.abs(i.cost-b)<0.009) return '';
+            const up=i.cost>b, pct=Math.abs((i.cost-b)/b*100);
+            return `<div style="font-size:11px;color:${up?'var(--clay)':'var(--sage)'}">${up?'▲':'▼'} ${pct.toFixed(0)}%</div>`})()}
+          ${i.costAt?`<div style="font-size:11px;color:var(--muted)">${fdateShort(i.costAt)}</div>`:''}</td><td style="font-size:13px">${esc(i.supplier||'—')}
+          <div style="margin-top:3px;display:flex;gap:8px">
+            ${i.url?`<a href="${esc(i.url)}" target="_blank" rel="noopener" style="font-size:11.5px">الموقع ↗</a>`:''}
+            ${i.loc?(/^https?:/.test(i.loc)?`<a href="${esc(i.loc)}" target="_blank" rel="noopener" style="font-size:11.5px">الموقع ↗</a>`
+              :`<span style="font-size:11.5px;color:var(--muted)">${esc(i.loc)}</span>`):''}
+          </div></td>
+        <td style="white-space:nowrap"><button class="btn quiet sm" data-act="mv-out" data-id="${i.id}">صرف</button>
+        ${isOwner()?`<button class="btn quiet sm" data-act="item-edit" data-id="${i.id}">تعديل</button>`:''}</td></tr>`}).join('')
+        :`<tr><td colspan="9"><div class="empty"><div class="big">لا توجد أصناف</div>ابدئي بإضافة أول صنف إلى المخزون</div></td></tr>`}</tbody>
+    </table></div></div>`;
+}
+
+/* ========== 8. ACCOUNTING ========== */
+function vAccounting(){
+  const f=D.af=D.af||{month:monthOf(today()),status:'',q:''};
+  const all=visibleInvoices().slice().sort((a,b)=>(b.date+b.no).localeCompare(a.date+a.no));
+  const list=all.filter(v=>(!f.month||monthOf(v.date)===f.month)&&(!f.status||invStatus(v)===f.status)&&
+    (!f.q||(v.client+' '+v.no).includes(f.q)));
+  const tabs=`<div class="tabs">
+    <button class="tab ${TAB.acc==='invoices'?'on':''}" data-act="tab" data-k="acc" data-v="invoices">الفواتير</button>
+    ${isOwner()?`<button class="tab ${TAB.acc==='expenses'?'on':''}" data-act="tab" data-k="acc" data-v="expenses">المصروفات</button>
+    <button class="tab ${TAB.acc==='report'?'on':''}" data-act="tab" data-k="acc" data-v="report">التقرير الشهري</button>
+    <button class="tab ${TAB.acc==='settle'?'on':''}" data-act="tab" data-k="acc" data-v="settle">حساب الشريكات</button>`:''}
+  </div>`;
+  const tools=isOwner()&&TAB.acc==='expenses'?`<button class="btn" data-act="exp-new">+ مصروف جديد</button>`:'';
+
+  if(TAB.acc==='expenses'&&isOwner()) return head('الفواتير والمحاسبة','مصروفات التشغيل: البضاعة والمواصلات والتسويق وغيرها',tools)+tabs+expensesTab(f);
+  if(TAB.acc==='report'&&isOwner()) return head('الفواتير والمحاسبة','صورة شاملة عن أداء الشهر','')+tabs+reportTab(f);
+  if(TAB.acc==='settle'&&isOwner()) return head('الفواتير والمحاسبة','مساهمة كل شريكة والمبالغ المستحقّة بينهما','')+tabs+settleTab();
+
+  const billed=sum(list,v=>v.total), paid=sum(list,v=>invPaid(v));
+  return head('الفواتير والمحاسبة','كل فاتورة مرتبطة بحجزها، وأي تعديل على الخدمات ينعكس عليها',tools)+tabs
+  +`<div class="grid g3" style="margin-bottom:16px">
+      <div class="card stat"><div class="lbl">إجمالي الفواتير</div><div class="val">${money(billed)}<small>ر.ق</small></div><div class="note">${list.length} فاتورة</div></div>
+      <div class="card stat"><div class="lbl">المحصّل</div><div class="val" style="color:var(--sage)">${money(paid)}<small>ر.ق</small></div></div>
+      <div class="card stat"><div class="lbl">المتبقٍّ</div><div class="val" style="color:${billed-paid>0?'var(--clay)':'inherit'}">${money(billed-paid)}<small>ر.ق</small></div></div>
+    </div>
+    <div class="filters">
+      <input type="month" value="${f.month}" data-act="af" data-k="month">
+      <select data-act="af" data-k="status"><option value="">كل الحالات</option>
+        ${Object.entries(PAYST).map(([k,v])=>`<option value="${k}" ${f.status===k?'selected':''}>${v.ar}</option>`).join('')}</select>
+      <input placeholder="بحث برقم الفاتورة أو الاسم" value="${esc(f.q)}" data-act="af" data-k="q">
+      <button class="btn quiet sm" data-act="af-clear">إلغاء الفلترة</button>
+    </div>
+    <div class="card"><div class="tbl-wrap"><table>
+      <thead><tr><th>رقم</th><th>التاريخ</th><th>الزبونة</th><th>الأخصائية</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقٍّ</th><th>الحالة</th><th></th></tr></thead>
+      <tbody>${list.length?list.map(v=>{const p=invPaid(v),st=PAYST[invStatus(v)];return `<tr>
+        <td class="num" style="font-weight:600">${esc(v.no)}</td><td class="num">${fdateShort(v.date)}</td>
+        <td><b>${esc(v.client)}</b></td><td><span class="dot" style="background:${staffColor(v.staffId)}"></span> ${esc(staffName(v.staffId))}</td>
+        <td class="num"><b>${money(v.total)}</b></td><td class="num">${money(p)}</td>
+        <td class="num" style="color:${v.total-p>0.009?'var(--clay)':'var(--muted)'}">${money(v.total-p)}</td>
+        <td><span class="chip ${st.c}">${st.ar}</span></td>
+        <td><button class="btn quiet sm" data-act="inv-open" data-id="${v.id}">عرض</button></td></tr>`}).join('')
+        :`<tr><td colspan="9"><div class="empty"><div class="big">لا توجد فواتير</div>تُنشأ الفاتورة تلقائياً عند إنهاء الحجز</div></td></tr>`}</tbody>
+    </table></div></div>`;
+}
+function expensesTab(f){
+  const list=S.expenses.filter(e=>!f.month||monthOf(e.date)===f.month).sort((a,b)=>b.date.localeCompare(a.date));
+  const total=sum(list,e=>e.amount);
+  const byCat={}; list.forEach(e=>byCat[e.cat]=(byCat[e.cat]||0)+e.amount);
+  return `<div class="filters"><input type="month" value="${f.month}" data-act="af" data-k="month"></div>
+  <div class="grid g-2-1">
+    <div class="card"><h3>المصروفات</h3><div class="card-sub">إجمالي ${money(total)} ر.ق خلال الشهر</div>
+      <div class="tbl-wrap"><table><thead><tr><th>التاريخ</th><th>البند</th><th>الفئة</th><th>المبلغ</th><th>دفعها من حسابه</th><th></th></tr></thead>
+      <tbody>${list.length?list.map(e=>`<tr><td class="num">${fdateShort(e.date)}</td><td><b>${esc(e.note||'—')}</b></td>
+        <td><span class="chip grey">${esc(e.cat)}</span></td><td class="num"><b>${money(e.amount)}</b></td>
+        <td>${payerOf(e)?`<span class="dot" style="background:${staffColor(payerOf(e))}"></span> ${esc(staffName(payerOf(e)))}`
+          :'<span class="chip clay">غير محدد</span>'}</td>
+        <td style="white-space:nowrap"><button class="btn quiet sm" data-act="exp-edit" data-id="${e.id}">تعديل</button>
+        <button class="btn quiet sm" data-act="exp-del" data-id="${e.id}">حذف</button></td></tr>`).join('')
+        :`<tr><td colspan="6"><div class="empty">لا توجد مصروفات مسجّلة في هذا الشهر</div></td></tr>`}</tbody></table></div></div>
+    <div class="card"><h3>حسب الفئة</h3><div class="card-sub">توزيع المصروفات حسب الفئة</div>
+      ${Object.keys(byCat).length?Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([c,v])=>`
+        <div class="alert-row"><span>${esc(c)}</span><span class="qty num">${money(v)}</span></div>
+        <div class="bar"><i style="width:${(v/total*100).toFixed(0)}%;background:var(--plum)"></i></div>`).join('')
+        :'<div class="empty" style="padding:18px">—</div>'}</div>
+  </div>`;
+}
+function reportTab(f){
+  const m=f.month;
+  const inv=S.invoices.filter(v=>monthOf(v.date)===m);
+  const exp=S.expenses.filter(e=>monthOf(e.date)===m);
+  const billed=sum(inv,v=>v.total), collected=sum(inv,v=>invPaid(v)), spent=sum(exp,e=>e.amount);
+  const bks=S.bookings.filter(b=>monthOf(b.date)===m);
+  const byStaff=S.users.map(u=>({u,c:bks.filter(b=>b.staffId===u.id&&b.status==='done').length,
+    r:sum(inv.filter(v=>v.staffId===u.id),v=>v.total)})).filter(x=>x.c||x.r).sort((a,b)=>b.r-a.r);
+  const svc={}; inv.forEach(v=>v.lines.forEach(l=>{svc[l.name]=svc[l.name]||{n:0,r:0}; svc[l.name].n+=l.qty; svc[l.name].r+=l.price*l.qty}));
+  const top=Object.entries(svc).sort((a,b)=>b[1].r-a[1].r).slice(0,8);
+  const maxR=top.length?top[0][1].r:1;
+  return `<div class="filters"><input type="month" value="${m}" data-act="af" data-k="month">
+    <button class="btn quiet sm" data-act="print">طباعة التقرير</button></div>
+  <div class="grid g4" style="margin-bottom:16px">
+    <div class="card stat accent"><div class="lbl">صافي الربح (محصّل − مصروف)</div><div class="val">${money(collected-spent)}<small>ر.ق</small></div></div>
+    <div class="card stat"><div class="lbl">إجمالي الفواتير</div><div class="val">${money(billed)}<small>ر.ق</small></div></div>
+    <div class="card stat"><div class="lbl">المحصّل</div><div class="val" style="color:var(--sage)">${money(collected)}<small>ر.ق</small></div>
+      <div class="note">متبقٍّ ${money(billed-collected)} ر.ق</div></div>
+    <div class="card stat"><div class="lbl">المصروفات</div><div class="val" style="color:var(--clay)">${money(spent)}<small>ر.ق</small></div></div>
+  </div>
+  <div class="grid g2">
+    <div class="card"><h3>أداء الفريق</h3><div class="card-sub">المواعيد المنجزة والإيراد لكل أخصائية</div>
+      <table><thead><tr><th>الاسم</th><th>مواعيد منجزة</th><th>الإيراد</th></tr></thead>
+      <tbody>${byStaff.length?byStaff.map(x=>`<tr><td><span class="dot" style="background:${x.u.color}"></span> <b>${esc(x.u.name)}</b>
+        <div style="font-size:12px;color:var(--muted)">${esc(x.u.title||'')}</div></td>
+        <td class="num">${x.c}</td><td class="num"><b>${money(x.r)}</b></td></tr>`).join('')
+        :`<tr><td colspan="3"><div class="empty">لا توجد بيانات لهذا الشهر</div></td></tr>`}</tbody></table></div>
+    <div class="card"><h3>الخدمات الأكثر دخلاً</h3><div class="card-sub">بحسب الفواتير الصادرة</div>
+      ${top.length?top.map(([n,v])=>`<div style="margin-bottom:10px">
+        <div class="alert-row" style="border:0;padding:2px 0"><span>${esc(n)} <span style="color:var(--muted);font-size:12px">×${v.n}</span></span>
+        <span class="qty num">${money(v.r)}</span></div>
+        <div class="bar"><i style="width:${(v.r/maxR*100).toFixed(0)}%;background:var(--gold)"></i></div></div>`).join('')
+        :'<div class="empty">لا توجد فواتير في هذا الشهر</div>'}</div>
+  </div>`;
+}
+
+/* ========== 9. CLIENTS ========== */
+function vClients(){
+  const f=D.cf=D.cf||{q:''};
+  const rows=S.clients.map(c=>{
+    const bs=S.bookings.filter(b=>(b.phone&&b.phone===c.phone)||b.client===c.name);
+    const done=bs.filter(b=>b.status==='done');
+    const spent=sum(S.invoices.filter(v=>done.some(b=>b.id===v.bookingId)),v=>v.total)
+               +sum(S.subs.filter(x=>(x.phone&&x.phone===c.phone)||x.client===c.name),x=>x.price);
+    const last=bs.map(b=>b.date).sort().pop();
+    const subs=activeSubs(c.name,c.phone);
+    return {c,visits:done.length,upcoming:bs.filter(b=>b.date>=today()&&b.status!=='cancelled'&&b.status!=='done').length,spent,last,subs};
+  }).filter(r=>!f.q||(r.c.name+' '+(r.c.phone||'')).includes(f.q)).sort((a,b)=>b.spent-a.spent);
+  return head('الزبائن','اضغطي على اسم الزبونة لعرض ملفّها الكامل','')
+  +`<div class="filters"><input placeholder="بحث بالاسم أو الرقم" value="${esc(f.q)}" data-act="cf" data-k="q"></div>
+    <div class="card"><div class="tbl-wrap"><table>
+    <thead><tr><th>الزبونة</th><th>الجوال</th><th>المنطقة</th><th>زيارات</th><th>باقة نشطة</th><th>حجوزات قادمة</th><th>إجمالي الصرف</th><th>آخر زيارة</th></tr></thead>
+    <tbody>${rows.length?rows.map(r=>`<tr><td>
+      <button class="cl-link" data-act="cl-open" data-id="${r.c.id}">${esc(r.c.name)}</button></td><td class="num">${esc(r.c.phone||'—')}</td>
+      <td>${esc(r.c.area||'—')}</td><td class="num">${r.visits}</td>
+      <td>${r.subs.length?r.subs.map(s=>`<span class="chip sage">${esc(s.packageName)} · ${s.sessions-s.used} متبقٍّة</span>`).join(' '):'—'}</td>
+      <td>${r.upcoming?`<span class="chip plum">${r.upcoming}</span>`:'—'}</td>
+      <td class="num"><b>${money(r.spent)}</b></td><td class="num">${r.last?fdateShort(r.last):'—'}</td></tr>`).join('')
+      :`<tr><td colspan="8"><div class="empty">لا توجد زبونات بعد — تُسجَّل تلقائياً مع أول حجز</div></td></tr>`}</tbody>
+    </table></div></div>`;
+}
+
+/* ========== 10. SERVICES ========== */
+function vServices(){
+  const cats=[...new Set(S.services.map(s=>s.cat))];
+  const tabs=`<div class="tabs">
+    <button class="tab ${TAB.sv!=='pkg'?'on':''}" data-act="tab" data-k="sv" data-v="list">الخدمات المفردة</button>
+    <button class="tab ${TAB.sv==='pkg'?'on':''}" data-act="tab" data-k="sv" data-v="pkg">الباقات (${S.packages.length})</button>
+  </div>`;
+  if(TAB.sv==='pkg'){
+    const subs=S.subs.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    return head('الخدمات والأسعار','باقات بسعر مخفّض: زيارة واحدة، أو عدّة جلسات تُدفع مقدماً',
+      `<button class="btn quiet" data-act="sell-new">بيع باقة لزبونة</button>
+       <button class="btn" data-act="pkg-new">+ باقة جديدة</button>`)+tabs
+    +(S.packages.length?`<div class="grid g3" style="margin-bottom:20px">${S.packages.map(p=>{
+        const per=sum(p.lines,l=>l.price*(l.qty||1));
+        const full=per*(p.sessions||1), saved=full-p.price;
+        return `<div class="card">
+          <div style="display:flex;align-items:flex-start;gap:8px">
+            <div><h3>${esc(p.name)}</h3>
+              <div class="card-sub" style="margin-bottom:8px">${(p.sessions||1)>1?`${p.sessions} جلسات · تُخصم جلسة عند كل زيارة`:'زيارة واحدة'}${p.validMonths?` · صالحة ${p.validMonths} شهر`:''}</div></div>
+            <span class="chip ${(p.sessions||1)>1?'gold':'plum'}" style="margin-inline-start:auto">${(p.sessions||1)>1?'جلسات':'مجمّعة'}</span>
+          </div>
+          <div class="line-list" style="margin-bottom:10px">${p.lines.length?p.lines.map(l=>`<div class="line">
+            <span class="nm">${esc(l.name)}</span><span style="color:var(--muted);font-size:12.5px">${l.qty>1?'×'+l.qty:''}</span>
+            <span class="pr">${money(l.price*(l.qty||1))}</span></div>`).join(''):'<div class="line-empty">بدون خدمات</div>'}</div>
+          <div class="totals">
+            <div><span>القيمة الأصلية</span><span class="num" style="text-decoration:line-through;color:var(--muted)">${money(full)} ر.ق</span></div>
+            <div class="grand"><span>سعر الباقة</span><span class="num">${money(p.price)} ر.ق</span></div>
+            ${saved>0?`<div style="color:var(--sage)"><span>وفر الزبونة</span><span class="num">${money(saved)} ر.ق</span></div>`:''}
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="btn quiet sm" data-act="sell-new" data-pid="${p.id}">بيعها لزبونة</button>
+            <button class="btn quiet sm" data-act="pkg-edit" data-id="${p.id}">تعديل</button>
+            <button class="btn quiet sm" data-act="pkg-del" data-id="${p.id}">حذف</button></div>
+        </div>`}).join('')}</div>`
+      :`<div class="card"><div class="empty"><div class="big">لا توجد باقات بعد</div>
+         الباقة مجموعة خدمات بسعر مخفّض، لزيارة واحدة أو لجلسات تُستهلك على عدّة زيارات
+         <br><button class="btn" data-act="pkg-new">+ أنشئي أول باقة</button></div></div>`)
+    +`<div class="card"><h3>الباقات المباعة</h3><div class="card-sub">رصيد كل زبونة والجلسات المتبقّية لها</div>
+      <div class="tbl-wrap"><table>
+      <thead><tr><th>الزبونة</th><th>الباقة</th><th>تاريخ الشراء</th><th>الجلسات</th><th>المتبقٍّ</th><th>المبلغ</th><th>تنتهي في</th><th></th></tr></thead>
+      <tbody>${subs.length?subs.map(x=>{
+        const left=(x.sessions||0)-(x.used||0), dead=x.expiry&&x.expiry<today();
+        return `<tr><td><b>${esc(x.client)}</b><br><span style="font-size:12px;color:var(--muted)">${esc(x.phone||'')}</span></td>
+        <td>${esc(x.packageName)}</td><td class="num">${fdateShort(x.date)}</td>
+        <td class="num">${x.used||0} / ${x.sessions}</td>
+        <td>${left>0&&!dead?`<span class="chip sage">${left} متبقٍّة</span>`:`<span class="chip grey">${dead?'منتهية':'مستهلكة'}</span>`}</td>
+        <td class="num">${money(x.price)}</td><td class="num">${x.expiry?fdateShort(x.expiry):'—'}</td>
+        <td><button class="btn quiet sm" data-act="sub-del" data-id="${x.id}">حذف</button></td></tr>`}).join('')
+        :`<tr><td colspan="8"><div class="empty">لا توجد باقات مباعة بعد</div></td></tr>`}</tbody></table></div></div>`;
+  }
+  return head('الخدمات والأسعار','قائمة الأسعار المستخدمة في الحجوزات والفواتير',
+    `<button class="btn" data-act="svc-new">+ خدمة جديدة</button>`)+tabs
+  +cats.map(c=>`<div class="card" style="margin-bottom:16px"><h3>${esc(c)}</h3>
+     <div class="card-sub">${S.services.filter(s=>s.cat===c).length} خدمات</div>
+     <table><thead><tr><th>الخدمة</th><th>السعر</th><th>المدة</th><th></th></tr></thead><tbody>
+     ${S.services.filter(s=>s.cat===c).map(s=>`<tr><td><b>${esc(s.name)}</b></td><td class="num">${money(s.price)} ر.ق</td>
+       <td class="num">${s.dur} دقيقة</td>
+       <td style="white-space:nowrap"><button class="btn quiet sm" data-act="svc-edit" data-id="${s.id}">تعديل</button>
+       <button class="btn quiet sm" data-act="svc-del" data-id="${s.id}">حذف</button></td></tr>`).join('')}
+     </tbody></table></div>`).join('');
+}
+
+/* ========== 11. TEAM ========== */
+function vTeam(){
+  return head('فريق العمل','صلاحيات الدخول لكل عضوة في الفريق',
+    `<button class="btn" data-act="usr-new">+ عضوة جديدة</button>`)
+  +`<div class="card"><div class="tbl-wrap"><table>
+    <thead><tr><th>الاسم</th><th>اسم المستخدم</th><th>الصفة</th><th>الصلاحية</th><th>حجوزات الشهر</th><th></th></tr></thead>
+    <tbody>${S.users.map(u=>{const c=S.bookings.filter(b=>b.staffId===u.id&&monthOf(b.date)===monthOf(today())).length;
+      return `<tr><td><span class="avatar" style="background:${u.color};width:26px;height:26px;font-size:12px;display:inline-grid;vertical-align:middle">${esc(u.name[0])}</span>
+      <b style="margin-inline-start:6px">${esc(u.name)}</b></td>
+      <td class="num">${esc(u.username)}</td><td>${esc(u.title||'—')}</td>
+      <td><span class="chip ${u.role==='owner'?'plum':'sage'}">${u.role==='owner'?'شريكة — صلاحية كاملة':'أخصائية — صلاحية محدودة'}</span></td>
+      <td class="num">${c}</td>
+      <td style="white-space:nowrap"><button class="btn quiet sm" data-act="usr-edit" data-id="${u.id}">تعديل</button>
+      ${u.id!==ME.id?`<button class="btn quiet sm" data-act="usr-del" data-id="${u.id}">حذف</button>`:''}</td></tr>`}).join('')}
+    </tbody></table></div>
+    <div style="margin-top:16px;background:var(--surface-2);border-radius:var(--r-sm);padding:14px;font-size:13.5px;color:var(--muted)">
+      <b style="color:var(--ink)">صلاحيات الأخصائية:</b> حجوزاتها فقط، مع تعديل الخدمات وإغلاق الموعد، والصرف من المخزون، والاطلاع على فواتيرها وتسجيل المبالغ المستلمة.
+      <b style="color:var(--ink);display:block;margin-top:6px">صلاحيات الشريكة:</b> كل الصلاحيات: الحجوزات والمخزون والفواتير والمصروفات والتقارير وإدارة الفريق.
+      <b style="color:var(--ink);display:block;margin-top:6px">كلمات المرور:</b> تغيّر كل عضوة كلمة مرورها بنفسها من زر «كلمة المرور». وعند نسيانها، تُعاد من لوحة Supabase ← Authentication.
+    </div></div>`;
+}
+
+/* ========== 12. MODAL ENGINE ========== */
+const host=()=>document.getElementById('modal-host');
+function modal(title,body,foot,wide){
+  host().innerHTML=`<div class="overlay" data-act="ovl"><div class="modal" ${wide?'style="max-width:780px"':''}>
+    <div class="modal-head"><h3>${title}</h3><button class="x" data-act="close">×</button></div>
+    <div class="modal-body">${body}</div>
+    ${foot?`<div class="modal-foot">${foot}</div>`:''}</div></div>`;
+  const first=host().querySelector('input:not([type=hidden]),select,textarea'); if(first&&window.innerWidth>900) first.focus();
+}
+const close=()=>{host().innerHTML=''};
+const val=id=>{const e=document.getElementById(id); return e?e.value.trim():''};
+const numv=id=>{const v=parseFloat(val(id)); return isNaN(v)?0:v};
+
+/* ---- booking form ---- */
+function openBooking(id){
+  const b=id?byId(S.bookings,id):null;
+  D.b = b ? JSON.parse(JSON.stringify(b))
+          : {id:null,client:'',phone:'',area:'',address:'',date:today(),time:'11:00',
+             staffId:isOwner()?(S.users.find(u=>u.role==='staff')||S.users[0]).id:ME.id,
+             lines:[],transport:+S.settings.transport||0,discount:0,status:'confirmed',notes:''};
+  renderBooking();
+}
+function harvestB(){
+  const b=D.b; if(!document.getElementById('bClient')) return;
+  b.client=val('bClient'); b.phone=val('bPhone'); b.area=val('bArea'); b.address=val('bAddress');
+  b.date=val('bDate'); b.time=val('bTime'); b.notes=val('bNotes');
+  b.transport=numv('bTrans'); b.discount=numv('bDisc');
+  const st=document.getElementById('bStaff'); if(st) b.staffId=st.value;
+}
+function renderBooking(){
+  const b=D.b, isNew=!b.id, ro=(!isOwner()&&b.id&&b.staffId!==ME.id);
+  const inv=b.id?S.invoices.find(v=>v.bookingId===b.id):null;
+  const sub=sum(b.lines,l=>l.price*(l.qty||1)), total=Math.max(0,sub+(+b.transport||0)-(+b.discount||0));
+  const lines=b.lines.length?b.lines.map((l,i)=>`<div class="line"><span class="nm">${esc(l.name)}</span>
+      <span style="color:var(--muted);font-size:13px">${l.qty>1?'×'+l.qty:''}</span>
+      <span class="pr">${money(l.price*(l.qty||1))}</span>
+      <button class="rm" data-act="ln-rm" data-i="${i}" title="حذف">×</button></div>`).join('')
+    :`<div class="line-empty">ما أضفتي خدمات بعد</div>`;
+  const svcOpts=S.services.map(s=>`<option value="${s.id}">${esc(s.name)} — ${money(s.price)} ر.ق</option>`).join('');
+  const body=`
+    <div class="row-2">
+      <div class="field"><label>اسم الزبونة</label><input id="bClient" list="clientList" value="${esc(b.client)}" placeholder="مثال: نورة السويدي"></div>
+      <div class="field"><label>رقم الجوال</label><input id="bPhone" value="${esc(b.phone)}" placeholder="55xxxxxx" inputmode="tel"></div>
+    </div>
+    <datalist id="clientList">${S.clients.map(c=>`<option value="${esc(c.name)}">`).join('')}</datalist>
+    <div class="row-2">
+      <div class="field"><label>المنطقة</label><input id="bArea" value="${esc(b.area)}" placeholder="الوعب"></div>
+      <div class="field"><label>العنوان / وصف المنزل</label><input id="bAddress" value="${esc(b.address)}" placeholder="الشارع ورقم الفيلا أو الشقة"></div>
+    </div>
+    <div class="row-3">
+      <div class="field"><label>التاريخ</label><input id="bDate" type="date" value="${b.date}"></div>
+      <div class="field"><label>الوقت</label><input id="bTime" type="time" value="${b.time}"></div>
+      <div class="field"><label>الأخصائية</label>
+        ${isOwner()?`<select id="bStaff">${S.users.map(u=>`<option value="${u.id}" ${b.staffId===u.id?'selected':''}>${esc(u.name)}</option>`).join('')}</select>`
+          :`<input value="${esc(staffName(b.staffId))}" disabled>`}</div>
+    </div>
+    <div class="field"><label>الخدمات أو الباقات</label>
+      <div class="line-list">${lines}</div>
+      <div style="display:flex;gap:8px"><select id="bSvc" style="flex:1;padding:9px 11px;border:1px solid var(--line);border-radius:var(--r-sm)">
+        <optgroup label="خدمات مفردة">${svcOpts}</optgroup>
+        ${S.packages.length?`<optgroup label="باقات">${S.packages.map(p=>`<option value="p:${p.id}">${esc(p.name)} — ${money(p.price)} ر.ق${(p.sessions||1)>1?` · ${p.sessions} جلسات`:''}</option>`).join('')}</optgroup>`:''}
+      </select>
+        <input id="bQty" type="number" min="1" value="1" style="width:70px;padding:9px;border:1px solid var(--line);border-radius:var(--r-sm)">
+        <button class="btn quiet" data-act="ln-add">إضافة</button></div>
+    </div>
+    <div class="row-2">
+      <div class="field"><label>رسوم المواصلات</label><input id="bTrans" type="number" step="5" value="${b.transport}"></div>
+      <div class="field"><label>خصم</label><input id="bDisc" type="number" step="5" value="${b.discount}"></div>
+    </div>
+    ${pkgBox(b)}
+    <div class="totals" style="margin-bottom:14px">
+      <div><span>الخدمات</span><span class="num">${money(sub)} ر.ق</span></div>
+      <div><span>مواصلات</span><span class="num">${money(b.transport)} ر.ق</span></div>
+      ${b.discount?`<div style="color:var(--clay)"><span>خصم</span><span class="num">−${money(b.discount)} ر.ق</span></div>`:''}
+      <div class="grand"><span>الإجمالي</span><span class="num">${money(total)} ر.ق</span></div>
+    </div>
+    <div class="field"><label>ملاحظات</label><textarea id="bNotes" placeholder="تفضيلات الزبونة، الألوان، الحساسية…">${esc(b.notes)}</textarea></div>
+    ${inv?`<div style="background:var(--sage-soft);color:var(--sage);padding:10px 12px;border-radius:var(--r-sm);font-size:13.5px">
+      مرتبط بالفاتورة <b>${esc(inv.no)}</b> — أي تعديل هنا يُحدّث الفاتورة تلقائياً.</div>`:''}`;
+  const foot=`<button class="btn" data-act="bk-save">${isNew?'حفظ الحجز':'حفظ التعديلات'}</button>
+    ${b.status!=='done'?`<button class="btn gold" data-act="bk-done">إنهاء الموعد وإصدار الفاتورة</button>`:''}
+    ${b.id?`<button class="btn quiet" data-act="mv-out" data-bid="${b.id}">صرف مواد لهذا الموعد</button>`:''}
+    ${inv?`<button class="btn quiet" data-act="inv-open" data-id="${inv.id}">عرض الفاتورة</button>`:''}
+    <span class="spacer"></span>
+    ${b.id&&b.status!=='cancelled'?`<button class="btn quiet" data-act="bk-cancel">إلغاء الحجز</button>`:''}
+    ${b.id&&isOwner()?`<button class="btn danger sm" data-act="bk-del">حذف</button>`:''}`;
+  modal(isNew?'حجز جديد':'تفاصيل الحجز — '+esc(b.client),body,foot,true);
+}
+async function saveBooking(silent){
+  harvestB(); const b=D.b;
+  if(!b.client){ toast('أدخلي اسم الزبونة'); return false }
+  if(!b.lines.length){ toast('أضيفي خدمة واحدة على الأقل'); return false }
+  if(b.id){ const i=S.bookings.findIndex(x=>x.id===b.id); S.bookings[i]=JSON.parse(JSON.stringify(b)) }
+  else { b.id=uid('b'); S.bookings.push(JSON.parse(JSON.stringify(b))) }
+  const stored=byId(S.bookings,b.id);
+  const c=upsertClient(stored), v=syncInvoice(stored);
+  await put('bookings',stored); if(c) await put('clients',c); if(v) await put('invoices',v);
+  if(!silent){ close(); render(); toast('تم حفظ الحجز') }
+  return true;
+}
+
+/* ---- invoice ---- */
+function openInvoice(id){
+  const v=byId(S.invoices,id); if(!v) return;
+  const paid=invPaid(v), st=PAYST[invStatus(v)], rem=v.total-paid;
+  const sub=sum(v.lines,l=>l.price*l.qty);
+  const body=`<div class="inv-paper" id="invPaper">
+    <div class="inv-head"><div><div class="mono"><b>RA</b><em>BEAUTY</em></div>
+      <div style="font-size:12.5px;color:var(--muted)">${esc(S.settings.tagline||'')}${S.settings.phone?' · '+esc(S.settings.phone):''}</div></div>
+      <div class="inv-no">فاتورة رقم<b>${esc(v.no)}</b>${fdateShort(v.date)}</div></div>
+    <div class="inv-meta">
+      <div><div class="k">الزبونة</div><b>${esc(v.client)}</b> ${v.phone?'· '+esc(v.phone):''}</div>
+      <div><div class="k">الأخصائية</div><b>${esc(staffName(v.staffId))}</b></div>
+    </div>
+    <table><thead><tr><th>الخدمة</th><th>العدد</th><th>السعر</th><th>المجموع</th></tr></thead>
+      <tbody>${v.lines.map(l=>`<tr><td>${esc(l.name)}</td><td class="num">${l.qty}</td>
+        <td class="num">${l.price>0?money(l.price):'<span style="color:var(--sage);font-size:12px">مشمولة بالباقة</span>'}</td>
+        <td class="num"><b>${l.price>0?money(l.price*l.qty):'—'}</b></td></tr>`).join('')}</tbody></table>
+    <div class="totals" style="margin-top:14px">
+      <div><span>مجموع الخدمات</span><span class="num">${money(sub)} ر.ق</span></div>
+      <div><span>مواصلات</span><span class="num">${money(v.transport)} ر.ق</span></div>
+      ${v.discount?`<div style="color:var(--clay)"><span>خصم</span><span class="num">−${money(v.discount)} ر.ق</span></div>`:''}
+      <div class="grand"><span>الإجمالي المستحق</span><span class="num">${money(v.total)} ر.ق</span></div>
+      <div style="color:var(--sage)"><span>المدفوع</span><span class="num">${money(paid)} ر.ق</span></div>
+      ${rem>0.009?`<div style="color:var(--clay)"><span>المتبقٍّ</span><span class="num">${money(rem)} ر.ق</span></div>`:''}
+    </div>
+    <div style="margin-top:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <span class="stamp ${invStatus(v)==='paid'?'':'due'}">${st.ar}</span>
+      <span style="font-size:12px;color:var(--muted)">شكراً لثقتك — RA Beauty</span></div>
+    ${(v.payments||[]).length?`<div class="pay-log">سجل الدفعات:<br>${v.payments.map(p=>
+      `${fdateShort(p.date)} — ${money(p.amount)} ر.ق (${esc(p.method)}) · استلمتها ${esc(p.by)}`).join('<br>')}</div>`:''}
+  </div>`;
+  const foot=`${rem>0.009?`<button class="btn" data-act="pay-new" data-id="${v.id}">تسجيل دفعة</button>`:''}
+    <button class="btn quiet" data-act="print">طباعة</button>
+    <button class="btn quiet" data-act="bk-open" data-id="${v.bookingId}">فتح الحجز</button>
+    <span class="spacer"></span>${isOwner()?`<button class="btn danger sm" data-act="inv-del" data-id="${v.id}">حذف الفاتورة</button>`:''}`;
+  modal('الفاتورة',body,foot,true);
+}
+function openPay(id){
+  const v=byId(S.invoices,id); const rem=v.total-invPaid(v);
+  modal('تسجيل دفعة — '+esc(v.no),
+   `<div class="row-2"><div class="field"><label>المبلغ المستلم</label><input id="pAmt" type="number" step="5" value="${rem.toFixed(2)}"></div>
+    <div class="field"><label>طريقة الدفع</label><select id="pMethod"><option>كاش</option><option>تحويل بنكي</option><option>بطاقة</option></select></div></div>
+    <div class="field"><label>التاريخ</label><input id="pDate" type="date" value="${today()}"></div>
+    <div style="font-size:13px;color:var(--muted)">المتبقٍّ على الفاتورة: <b>${money(rem)} ر.ق</b></div>`,
+   `<button class="btn" data-act="pay-save" data-id="${v.id}">تسجيل الدفعة</button>
+    <button class="btn quiet" data-act="inv-open" data-id="${v.id}">رجوع</button>`);
+}
+
+/* ---- inventory forms ---- */
+function openItem(id){
+  const i=id?byId(S.items,id):{name:'',cat:'',unit:'حبة',qty:0,min:1,cost:0,supplier:''};
+  modal(id?'تعديل صنف':'صنف جديد',
+   `<div class="row-2"><div class="field"><label>اسم الصنف</label><input id="iName" value="${esc(i.name)}"></div>
+     <div class="field"><label>الفئة</label><input id="iCat" list="catList" value="${esc(i.cat)}" placeholder="أظافر، بشرة، مستهلكات...">
+       <datalist id="catList">${[...new Set(S.items.map(x=>x.cat))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div></div>
+    <div class="row-3"><div class="field"><label>الوحدة</label><input id="iUnit" value="${esc(i.unit)}" placeholder="عبوة / حبة / لتر"></div>
+     <div class="field"><label>الكمية المتوفرة</label><input id="iQty" type="number" step="1" value="${i.qty}"></div>
+     <div class="field"><label>الحد الأدنى للتنبيه</label><input id="iMin" type="number" step="1" value="${i.min}"></div></div>
+    <div class="row-3">
+      <div class="field"><label>سعر الشراء الأول</label>
+        <input id="iCost0" type="number" step="1" value="${i.cost0!=null?i.cost0:i.cost}"></div>
+      <div class="field"><label>سعر الشراء الأخير</label><input id="iCost" type="number" step="1" value="${i.cost}"></div>
+      <div class="field"><label>اسم المتعاون / المورّد</label><input id="iSup" value="${esc(i.supplier||'')}"></div></div>
+    <div class="row-2">
+      <div class="field"><label>رابط الموقع الإلكتروني</label><input id="iUrl" dir="ltr" value="${esc(i.url||'')}" placeholder="https://..."></div>
+      <div class="field"><label>الموقع الجغرافي (رابط خرائط أو عنوان)</label><input id="iLoc" dir="ltr" value="${esc(i.loc||'')}" placeholder="https://maps.app.goo.gl/..."></div></div>`,
+   `<button class="btn" data-act="item-save" data-id="${id||''}">حفظ</button>
+    ${id?`<span class="spacer"></span><button class="btn danger sm" data-act="item-del" data-id="${id}">حذف الصنف</button>`:''}`);
+}
+function openMove(type,itemId,bookingId){
+  const opts=S.items.map(i=>`<option value="${i.id}" ${itemId===i.id?'selected':''}>${esc(i.name)} — متوفر ${i.qty} ${esc(i.unit)}</option>`).join('');
+  const bks=visibleBookings().filter(b=>b.status!=='cancelled').sort((a,b)=>b.date.localeCompare(a.date)).slice(0,40);
+  const first=itemId?byId(S.items,itemId):S.items[0];
+  modal(type==='out'?'صرف من المخزون':'استلام بضاعة',
+   `<div class="field"><label>الصنف</label><select id="mItem" data-act="mv-item">${opts}</select></div>
+    <div class="row-2"><div class="field"><label>الكمية</label><input id="mQty" type="number" step="1" min="1" value="1" data-act="mv-calc"></div>
+      <div class="field"><label>التاريخ</label><input id="mDate" type="date" value="${today()}"></div></div>
+    ${type==='out'?`<div class="field"><label>مرتبط بحجز (اختياري)</label><select id="mBk"><option value="">— بدون —</option>
+      ${bks.map(b=>`<option value="${b.id}" ${bookingId===b.id?'selected':''}>${esc(b.client)} · ${fdateShort(b.date)}</option>`).join('')}</select></div>`
+     :`<div class="row-2">
+        <div class="field"><label>سعر الشراء الحالي للوحدة</label>
+          <input id="mUnit" type="number" step="1" data-act="mv-calc" value="${first?first.cost:0}">
+          <div id="mHint" style="font-size:11.5px;color:var(--muted);margin-top:5px">
+            السعر المسجّل سابقاً: ${first?money(first.cost):'0.00'} ر.ق للوحدة</div></div>
+        <div class="field"><label>تسجيلها كمصروف</label><select id="mExp"><option value="1">نعم</option><option value="0">لا</option></select>
+          <div id="mTotal" style="font-size:12.5px;color:var(--ink);margin-top:5px;font-weight:600">
+            الإجمالي: ${first?money(first.cost):'0.00'} ر.ق</div></div></div>`}
+    <div class="field"><label>ملاحظة</label><input id="mNote" placeholder="اختياري"></div>`,
+   `<button class="btn" data-act="mv-save" data-type="${type}">${type==='out'?'تأكيد الصرف':'تأكيد الاستلام'}</button>
+    <button class="btn quiet" data-act="close">إلغاء</button>`);
+}
+
+/* ---- expense / service / user forms ---- */
+function openExpense(id){
+  const CATS=['بضاعة ومستلزمات','مواصلات','تسويق وإعلانات','أجور وعمولات','معدات','رسوم واشتراكات','أخرى'];
+  const e=id?byId(S.expenses,id):{amount:0,cat:CATS[0],date:today(),note:'',payer:ME.id};
+  const pay=id?payerOf(e):ME.id;
+  modal(id?'تعديل مصروف':'مصروف جديد',
+   `<div class="row-2"><div class="field"><label>المبلغ</label><input id="eAmt" type="number" step="5" value="${e.amount||0}"></div>
+     <div class="field"><label>الفئة</label><select id="eCat">${CATS.map(c=>`<option ${e.cat===c?'selected':''}>${c}</option>`).join('')}</select></div></div>
+    <div class="row-2"><div class="field"><label>التاريخ</label><input id="eDate" type="date" value="${e.date||today()}"></div>
+     <div class="field"><label>البيان</label><input id="eNote" value="${esc(e.note||'')}" placeholder="مثال: طلبية جل أظافر"></div></div>
+    <div class="row-2">
+      <div class="field"><label>الصنف من المخزون (اختياري)</label>
+        <select id="eItem" data-act="exp-item"><option value="">— بدون صنف —</option>
+          ${S.items.map(i=>`<option value="${i.id}" ${e.itemId===i.id?'selected':''}>${esc(i.name)} — ${money(i.cost)} ر.ق</option>`).join('')}</select></div>
+      <div class="field"><label>الكمية</label><input id="eQty" type="number" min="1" step="1" value="${e.qty||1}" data-act="exp-qty"></div>
+    </div>
+    <div id="eHint" style="font-size:12px;color:var(--muted);margin:-6px 0 14px">
+      عند اختيار صنف يُعبَّأ سعره المسجّل تلقائياً، ويمكن تعديل المبلغ إذا اختلف السعر. تسجيل استلام بضاعة مع تحديث الكمية يتم من شاشة المخزون.</div>
+    <div class="field"><label>من دفعها من حسابه الخاص؟</label><select id="ePayer">
+      ${S.users.map(u=>`<option value="${u.id}" ${pay===u.id?'selected':''}>${esc(u.name)}${u.role==='owner'?' (شريكة)':''}</option>`).join('')}</select></div>
+    <div style="background:var(--surface-2);padding:11px 13px;border-radius:var(--r-sm);font-size:13px;color:var(--muted)">
+      يُبنى حساب الشريكات في تبويب «حساب الشريكات» على هذا التحديد.</div>`,
+   `<button class="btn" data-act="exp-save" data-id="${id||''}">حفظ المصروف</button><button class="btn quiet" data-act="close">إلغاء</button>`);
+}
+function openService(id){
+  const s=id?byId(S.services,id):{name:'',cat:'',price:0,dur:30};
+  modal(id?'تعديل خدمة':'خدمة جديدة',
+   `<div class="row-2"><div class="field"><label>اسم الخدمة</label><input id="sName" value="${esc(s.name)}"></div>
+     <div class="field"><label>الفئة</label><input id="sCat" list="svcCats" value="${esc(s.cat)}">
+       <datalist id="svcCats">${[...new Set(S.services.map(x=>x.cat))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div></div>
+    <div class="row-2"><div class="field"><label>السعر (ر.ق)</label><input id="sPrice" type="number" step="5" value="${s.price}"></div>
+     <div class="field"><label>المدة (دقيقة)</label><input id="sDur" type="number" step="5" value="${s.dur}"></div></div>`,
+   `<button class="btn" data-act="svc-save" data-id="${id||''}">حفظ</button><button class="btn quiet" data-act="close">إلغاء</button>`);
+}
+function openUser(id){
+  const u=id?byId(S.users,id):{name:'',username:'',role:'staff',title:'',color:'#6B2E5F'};
+  const colors=['#6B2E5F','#C79A4B','#3F7A63','#B4453C','#8A5A9E','#2F6E8F'];
+  modal(id?'تعديل بيانات عضوة':'عضوة جديدة',
+   `<div class="row-2"><div class="field"><label>الاسم</label><input id="uName" value="${esc(u.name)}"></div>
+     <div class="field"><label>الصفة</label><input id="uTitle" value="${esc(u.title||'')}" placeholder="أخصائية أظافر"></div></div>
+    <div class="row-2">
+      <div class="field"><label>اسم المستخدم (للدخول)</label>
+        <input id="uUser" dir="ltr" value="${esc(u.username||'')}" placeholder="maryam" ${id?'disabled':''}></div>
+      <div class="field"><label>كلمة المرور</label>
+        ${id?`<input value="••••••" disabled>`:`<input id="uPass" dir="ltr" placeholder="6 خانات على الأقل">`}</div></div>
+    <div class="row-2"><div class="field"><label>الصلاحية</label><select id="uRole">
+      <option value="staff" ${u.role==='staff'?'selected':''}>أخصائية — حجوزاتها فقط</option>
+      <option value="owner" ${u.role==='owner'?'selected':''}>شريكة — صلاحية كاملة</option></select></div>
+     <div class="field"><label>لون التمييز</label><select id="uColor">${colors.map(c=>`<option value="${c}" ${u.color===c?'selected':''}>${c}</option>`).join('')}</select></div></div>
+    ${id?`<div style="background:var(--surface-2);padding:11px 13px;border-radius:var(--r-sm);font-size:13px;color:var(--muted)">
+      تغيّر صاحبة الحساب كلمة المرور بنفسها من زر «كلمة المرور» بعد الدخول. ولتغييرها نيابةً عنها، تُعاد من لوحة Supabase.</div>`
+     :`<div style="background:var(--gold-soft);padding:11px 13px;border-radius:var(--r-sm);font-size:13px;color:#8A6415">
+      سيُنشأ لها حساب دخول فعلي — سلّميها اسم المستخدم وكلمة المرور بعد الحفظ.</div>`}`,
+   `<button class="btn" data-act="usr-save" data-id="${id||''}">حفظ</button><button class="btn quiet" data-act="close">إلغاء</button>`);
+}
+function openPwd(){
+  modal('تغيير كلمة المرور',
+   `<div class="field"><label>كلمة المرور الجديدة</label><input id="wNew" type="password" dir="ltr" placeholder="6 خانات على الأقل"></div>
+    <div class="field"><label>تأكيد كلمة المرور</label><input id="wNew2" type="password" dir="ltr"></div>`,
+   `<button class="btn" data-act="pwd-save">حفظ</button><button class="btn quiet" data-act="close">إلغاء</button>`);
+}
+
+function activeSubs(client,phone){
+  return (S.subs||[]).filter(x=>(((phone&&x.phone&&x.phone===phone))||x.client===client)
+    && ((x.sessions||0)-(x.used||0))>0 && (!x.expiry||x.expiry>=today()));
+}
+function pkgBox(b){
+  let extra='';
+  if(b.newPkgId){
+    const p=byId(S.packages,b.newPkgId);
+    if(p) extra=`<div style="background:var(--plum-soft);color:var(--plum-dark);padding:11px 13px;border-radius:var(--r-sm);
+      font-size:13.5px;margin-bottom:14px">تُباع باقة <b>${esc(p.name)}</b> مع هذا الموعد — وعند إنهائه يُفتح للزبونة رصيد
+      <b>${p.sessions} جلسات</b> (واحدة منها لهذه الزيارة) وتُخصم تلقائياً في الزيارات القادمة.</div>`;
+  }
+  if(b.subId){
+    const s=byId(S.subs,b.subId);
+    return `<div style="background:var(--sage-soft);color:var(--sage);padding:11px 13px;border-radius:var(--r-sm);
+      font-size:13.5px;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span>هذا الموعد على حساب باقة <b>${esc(s?s.packageName:'')}</b> — تُخصم جلسة واحدة عند الإنهاء.</span>
+      <button class="btn quiet sm" data-act="pkg-clear" style="margin-inline-start:auto">إلغاء استخدام الباقة</button></div>`+extra;
+  }
+  const subs=activeSubs(b.client,b.phone);
+  if(!subs.length) return extra;
+  return extra+`<div style="background:var(--gold-soft);padding:11px 13px;border-radius:var(--r-sm);font-size:13.5px;margin-bottom:14px">
+    <b style="color:#8A6415">لدى الزبونة باقة مدفوعة:</b>
+    ${subs.map(s=>`<div style="display:flex;align-items:center;gap:10px;margin-top:7px;flex-wrap:wrap">
+      <span>${esc(s.packageName)} — متبقٍّ <b>${(s.sessions||0)-(s.used||0)}</b> جلسة${s.expiry?` · تنتهي ${fdateShort(s.expiry)}`:''}</span>
+      <button class="btn gold sm" data-act="pkg-use" data-sub="${s.id}" style="margin-inline-start:auto">استخدام جلسة</button></div>`).join('')}
+  </div>`;
+}
+
+/* ---- package definition ---- */
+function openPackage(id){
+  const p=id?byId(S.packages,id):null;
+  D.p=p?JSON.parse(JSON.stringify(p)):{id:null,name:'',lines:[],sessions:1,price:0,validMonths:6,note:''};
+  renderPackage();
+}
+function harvestP(){
+  const p=D.p; if(!document.getElementById('pName')) return;
+  p.name=val('pName'); p.price=numv('pPrice'); p.sessions=Math.max(1,numv('pSessions')||1);
+  p.validMonths=numv('pValid'); p.note=val('pNote');
+}
+function renderPackage(){
+  const p=D.p;
+  const per=sum(p.lines,l=>l.price*(l.qty||1)), full=per*Math.max(1,p.sessions||1);
+  const lines=p.lines.length?p.lines.map((l,i)=>`<div class="line"><span class="nm">${esc(l.name)}</span>
+      <span style="color:var(--muted);font-size:13px">${l.qty>1?'×'+l.qty:''}</span>
+      <span class="pr">${money(l.price*(l.qty||1))}</span>
+      <button class="rm" data-act="pln-rm" data-i="${i}">×</button></div>`).join('')
+    :`<div class="line-empty">أضيفي الخدمات المشمولة في الباقة</div>`;
+  modal(p.id?'تعديل باقة':'باقة جديدة',
+   `<div class="field"><label>اسم الباقة</label><input id="pName" value="${esc(p.name)}" placeholder="مثال: باقة العناية الشهرية"></div>
+    <div class="field"><label>الخدمات داخل الباقة</label>
+      <div class="line-list">${lines}</div>
+      <div style="display:flex;gap:8px"><select id="pSvc" style="flex:1;padding:9px 11px;border:1px solid var(--line);border-radius:var(--r-sm)">
+        ${S.services.map(s=>`<option value="${s.id}">${esc(s.name)} — ${money(s.price)} ر.ق</option>`).join('')}</select>
+        <input id="pQty" type="number" min="1" value="1" style="width:70px;padding:9px;border:1px solid var(--line);border-radius:var(--r-sm)">
+        <button class="btn quiet" data-act="pln-add">إضافة</button></div></div>
+    <div class="row-3">
+      <div class="field"><label>عدد الجلسات</label><input id="pSessions" type="number" min="1" value="${p.sessions||1}"></div>
+      <div class="field"><label>سعر الباقة (ر.ق)</label><input id="pPrice" type="number" step="10" value="${p.price}"></div>
+      <div class="field"><label>صلاحية (شهر)</label><input id="pValid" type="number" min="0" value="${p.validMonths||0}"></div>
+    </div>
+    <div class="totals" style="margin-bottom:12px">
+      <div><span>سعر الخدمات للجلسة الواحدة</span><span class="num">${money(per)} ر.ق</span></div>
+      <div><span>القيمة الأصلية لكل الجلسات</span><span class="num">${money(full)} ر.ق</span></div>
+      <div class="grand" style="color:${full-p.price>0?'var(--sage)':'inherit'}"><span>وفر الزبونة</span><span class="num">${money(Math.max(0,full-p.price))} ر.ق</span></div>
+    </div>
+    <div style="background:var(--surface-2);padding:11px 13px;border-radius:var(--r-sm);font-size:13px;color:var(--muted)">
+      جلسة واحدة: باقة تُنجَز في زيارة واحدة. أكثر من جلسة: تدفع الزبونة مرة واحدة، وتُخصم جلسة تلقائياً من رصيدها عند كل زيارة.</div>
+    <div class="field" style="margin-top:14px"><label>ملاحظة (اختياري)</label><input id="pNote" value="${esc(p.note||'')}"></div>`,
+   `<button class="btn" data-act="pkg-save">حفظ الباقة</button>
+    ${p.id?`<span class="spacer"></span><button class="btn danger sm" data-act="pkg-del" data-id="${p.id}">حذف</button>`:''}`,true);
+}
+
+/* ---- sell a package to a client ---- */
+function openSell(pid){
+  if(!S.packages.length){ toast('أنشئي باقة أول من صفحة الخدمات'); return }
+  const p=pid?byId(S.packages,pid):S.packages[0];
+  modal('بيع باقة لزبونة',
+   `<div class="row-2">
+      <div class="field"><label>اسم الزبونة</label><input id="zClient" list="clientList" placeholder="اسم الزبونة">
+        <datalist id="clientList">${S.clients.map(c=>`<option value="${esc(c.name)}">`).join('')}</datalist></div>
+      <div class="field"><label>رقم الجوال</label><input id="zPhone" placeholder="55xxxxxx" inputmode="tel"></div></div>
+    <div class="field"><label>الباقة</label><select id="zPkg">${S.packages.map(x=>`<option value="${x.id}" ${x.id===p.id?'selected':''}>${esc(x.name)} — ${money(x.price)} ر.ق · ${x.sessions||1} جلسة</option>`).join('')}</select></div>
+    <div class="row-3">
+      <div class="field"><label>المبلغ المحصّل</label><input id="zPrice" type="number" step="10" value="${p.price}"></div>
+      <div class="field"><label>تاريخ البيع</label><input id="zDate" type="date" value="${today()}"></div>
+      <div class="field"><label>الدفع</label><select id="zPaid"><option value="1">مدفوعة كاملة</option><option value="0">تدفع لاحقاً</option></select></div></div>
+    <div class="field"><label>طريقة الدفع</label><select id="zMethod"><option>كاش</option><option>تحويل بنكي</option><option>بطاقة</option></select></div>
+    <div style="background:var(--gold-soft);padding:11px 13px;border-radius:var(--r-sm);font-size:13px;color:#8A6415">
+      تُصدَر فاتورة بالباقة، ويظهر رصيد الجلسات للأخصائية تلقائياً في كل حجز لهذه الزبونة.</div>`,
+   `<button class="btn" data-act="sell-save">تسجيل البيع</button><button class="btn quiet" data-act="close">إلغاء</button>`);
+}
+
+/* ---- what did she use? (after finishing an appointment) ---- */
+function openConsume(bid){
+  D.finishId=bid;
+  const b=byId(S.bookings,bid);
+  const cats=[...new Set(S.items.map(i=>i.cat))];
+  const body=`<p style="margin:0 0 14px;color:var(--muted);font-size:13.5px">
+      المواد المستخدمة مع <b style="color:var(--ink)">${esc(b.client)}</b>، أدخلي الكمية أمام كل صنف، واتركي غير المستخدم على صفر.
+      تُخصم الكميات من المخزون مباشرة.</p>`
+    +(S.items.length?cats.map(c=>`<div class="cons-cat">${esc(c)}</div>`+
+        S.items.filter(i=>i.cat===c).map(i=>`<div class="cons-row">
+          <span class="nm">${esc(i.name)}<em>متوفر ${i.qty} ${esc(i.unit)}</em></span>
+          <input id="c_${i.id}" class="cons-q" type="number" min="0" step="1" value="0"></div>`).join('')).join('')
+      :'<div class="empty">لا توجد أصناف في المخزون</div>');
+  modal('المواد المستهلكة في هذا الموعد',body,
+   `<button class="btn" data-act="consume-save">تأكيد وإنهاء الموعد</button>
+    <button class="btn quiet" data-act="consume-skip">لم تُستخدم مواد — إنهاء</button>`,true);
+}
+async function finishBooking(id){
+  const b=byId(S.bookings,id); if(!b) return;
+  b.status='done';
+  if(b.subId&&!b.subCounted){
+    const s=byId(S.subs,b.subId);
+    if(s){ s.used=(s.used||0)+1; b.subCounted=true; await put('subs',s) }
+  }
+  if(b.newPkgId&&!b.subCreated){
+    const p=byId(S.packages,b.newPkgId);
+    if(p&&(p.sessions||1)>1){
+      const months=+p.validMonths||0; let expiry='';
+      if(months){ const d=new Date(b.date+'T00:00'); d.setMonth(d.getMonth()+months); expiry=d.toLocaleDateString('sv-SE') }
+      const sub={id:uid('k'),client:b.client,phone:b.phone,packageId:p.id,packageName:p.name,
+        sessions:p.sessions,used:1,price:p.price,date:b.date,expiry:expiry,
+        lines:JSON.parse(JSON.stringify(p.lines)),by:ME.name};
+      S.subs.push(sub); await put('subs',sub);
+    }
+    b.subCreated=true;
+  }
+  const v=syncInvoice(b);
+  await put('bookings',b); await put('invoices',v);
+  close(); render();
+  toast('تم إنهاء الموعد وإصدار الفاتورة '+v.no);
+  openInvoice(v.id);
+}
+
+/* ========== 12B. TASKS ========== */
+const PRIO={high:{ar:'عاجلة',c:'clay'},normal:{ar:'عادية',c:'plum'},low:{ar:'عند التيسّر',c:'grey'}};
+const TST={open:{ar:'جديدة'},doing:{ar:'جاري العمل'},done:{ar:'منجزة'}};
+const myTasks=()=>(S.tasks||[]).filter(t=>t.assignee===ME.id&&t.status!=='done');
+function taskSort(a,b){
+  const p={high:0,normal:1,low:2};
+  if((p[a.prio]||1)!==(p[b.prio]||1)) return (p[a.prio]||1)-(p[b.prio]||1);
+  return (a.due||'9999').localeCompare(b.due||'9999');
+}
+function taskCard(t){
+  const late=t.due&&t.due<today()&&t.status!=='done';
+  const soon=t.due===today()&&t.status!=='done';
+  const u=byId(S.users,t.assignee);
+  return `<div class="task ${t.status==='done'?'ok':''} ${late?'late':''}" data-act="task-open" data-id="${t.id}">
+    <div class="ttop">
+      <button class="tick ${t.status==='done'?'on':''}" data-act="task-toggle" data-id="${t.id}" title="تعليمها كمنجزة"></button>
+      <span class="ttl">${esc(t.title)}</span>
+    </div>
+    ${t.note?`<div class="tnote">${esc(t.note)}</div>`:''}
+    <div class="tmeta">
+      ${u?`<span class="chip grey"><span class="dot" style="background:${u.color}"></span>${esc(u.name)}</span>`
+        :`<span class="chip grey">غير موكلة</span>`}
+      ${t.prio&&t.prio!=='normal'?`<span class="chip ${PRIO[t.prio].c}">${PRIO[t.prio].ar}</span>`:''}
+      ${t.due?`<span class="chip ${late?'clay':(soon?'gold':'grey')}">${late?'متأخرة · ':(soon?'اليوم · ':'')}${fdateShort(t.due)}</span>`:''}
+    </div></div>`;
+}
+function vTasks(){
+  const f=D.tf=Object.assign({who:'',q:''},D.tf||{});
+  let all=(isOwner()?S.tasks:S.tasks.filter(t=>t.assignee===ME.id)).slice();
+  if(f.who) all=all.filter(t=>t.assignee===f.who);
+  if(f.q) all=all.filter(t=>(t.title+' '+(t.note||'')).includes(f.q));
+  all.sort(taskSort);
+  const open=all.filter(t=>t.status==='open'), doing=all.filter(t=>t.status==='doing');
+  const done=all.filter(t=>t.status==='done').sort((a,b)=>(b.doneAt||'').localeCompare(a.doneAt||''));
+  const late=all.filter(t=>t.due&&t.due<today()&&t.status!=='done');
+
+  const quick=isOwner()?`<div class="card" style="margin-bottom:16px">
+      <div class="quick">
+        <input id="tqTitle" placeholder="أضيفي مهمة جديدة… مثال: طلب جل أظافر من المورّد">
+        <select id="tqWho"><option value="">غير موكلة</option>
+          ${S.users.map(u=>`<option value="${u.id}">${esc(u.name)}</option>`).join('')}</select>
+        <input id="tqDue" type="date">
+        <button class="btn" data-act="task-quick">إضافة</button>
+      </div></div>`:'';
+
+  const col=(title,list,empty)=>`<div class="tcol"><div class="thead">${title}<span class="cnt">${list.length}</span></div>
+    ${list.length?list.map(taskCard).join(''):`<div class="tempty">${empty}</div>`}</div>`;
+
+  return head('المهام',isOwner()?'توزيع المهام على الفريق ومتابعة تنفيذها':'المهام الموكلة إليك',
+      isOwner()?`<button class="btn" data-act="task-new">+ مهمة بالتفاصيل</button>`:'')
+  +`<div class="grid g3" style="margin-bottom:16px">
+      <div class="card stat"><div class="lbl">مهام مفتوحة</div><div class="val">${open.length+doing.length}</div>
+        <div class="note">${doing.length} تحت التنفيذ</div></div>
+      <div class="card stat"><div class="lbl">متأخرة</div><div class="val" style="color:${late.length?'var(--clay)':'inherit'}">${late.length}</div>
+        <div class="note">${late.length?'تجاوزت تاريخها':'لا توجد مهام متأخرة'}</div></div>
+      <div class="card stat accent"><div class="lbl">منجزة</div><div class="val">${done.length}</div></div>
+    </div>
+    ${quick}
+    ${isOwner()?`<div class="filters">
+      <input placeholder="بحث في المهام" value="${esc(f.q)}" data-act="tf" data-k="q">
+      <select data-act="tf" data-k="who"><option value="">كل الفريق</option>
+        ${S.users.map(u=>`<option value="${u.id}" ${f.who===u.id?'selected':''}>${esc(u.name)}</option>`).join('')}</select>
+    </div>`:''}
+    <div class="board">
+      ${col('جديدة',open,'لا توجد مهام جديدة')}
+      ${col('جاري العمل',doing,'لا توجد مهام قيد التنفيذ')}
+      ${col('منجزة',done,'لم تُنجز مهام بعد')}
+    </div>`;
+}
+function openTask(id){
+  const t=id?byId(S.tasks,id):{id:null,title:'',note:'',assignee:'',due:'',prio:'normal',status:'open'};
+  const canEdit=isOwner();
+  modal(id?'تفاصيل المهمة':'مهمة جديدة',
+   `<div class="field"><label>المهمة</label><input id="tTitle" value="${esc(t.title)}" ${canEdit?'':'disabled'} placeholder="مثال: تجديد رخصة السيارة"></div>
+    <div class="row-3">
+      <div class="field"><label>المسؤولة</label><select id="tWho" ${canEdit?'':'disabled'}>
+        <option value="">غير موكلة</option>
+        ${S.users.map(u=>`<option value="${u.id}" ${t.assignee===u.id?'selected':''}>${esc(u.name)}</option>`).join('')}</select></div>
+      <div class="field"><label>تاريخ الاستحقاق</label><input id="tDue" type="date" value="${t.due||''}" ${canEdit?'':'disabled'}></div>
+      <div class="field"><label>الأولوية</label><select id="tPrio" ${canEdit?'':'disabled'}>
+        ${Object.entries(PRIO).map(([k,v])=>`<option value="${k}" ${t.prio===k?'selected':''}>${v.ar}</option>`).join('')}</select></div>
+    </div>
+    <div class="field"><label>الحالة</label><select id="tStatus">
+      ${Object.entries(TST).map(([k,v])=>`<option value="${k}" ${t.status===k?'selected':''}>${v.ar}</option>`).join('')}</select></div>
+    <div class="field"><label>تفاصيل / ملاحظات</label><textarea id="tNote" ${canEdit?'':'disabled'}>${esc(t.note||'')}</textarea></div>
+    ${t.id?`<div style="font-size:12.5px;color:var(--muted)">أنشأتها ${esc(t.by||'—')}${t.doneAt?` · انتهت ${fdateShort(t.doneAt.slice(0,10))}`:''}</div>`:''}`,
+   `<button class="btn" data-act="task-save" data-id="${t.id||''}">حفظ</button>
+    ${t.id&&isOwner()?`<span class="spacer"></span><button class="btn danger sm" data-act="task-del" data-id="${t.id}">حذف</button>`:''}`);
+}
+
+/* ========== 12C. OCCASIONS ========== */
+const HJ_M=['محرم','صفر','ربيع الأول','ربيع الآخر','جمادى الأولى','جمادى الآخرة','رجب','شعبان','رمضان','شوال','ذو القعدة','ذو الحجة'];
+const GR_M=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const HJ_CACHE={};
+function hijriMap(year){
+  if(HJ_CACHE[year]) return HJ_CACHE[year];
+  const map={};
+  try{
+    const fmt=new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{day:'numeric',month:'numeric',year:'numeric',timeZone:'UTC'});
+    const d=new Date(Date.UTC(year,0,1));
+    while(d.getUTCFullYear()===year){
+      const p=fmt.formatToParts(d);
+      const m=+p.find(x=>x.type==='month').value, dd=+p.find(x=>x.type==='day').value;
+      const k=m+'-'+dd; if(!map[k]) map[k]=d.toISOString().slice(0,10);
+      d.setUTCDate(d.getUTCDate()+1);
+    }
+  }catch(e){}
+  HJ_CACHE[year]=map; return map;
+}
+function occDate(o,y){
+  if(!o) return '';
+  if(o.kind==='once') return (o.date&&o.date.slice(0,4)===String(y))?o.date:'';
+  if(o.kind==='fixed') return y+'-'+o.md;
+  if(o.kind==='nth'){
+    const first=new Date(y,o.month-1,1);
+    const day=1+((o.dow-first.getDay()+7)%7)+((o.nth||1)-1)*7;
+    const d=new Date(y,o.month-1,day);
+    return d.getMonth()===o.month-1?d.toLocaleDateString('sv-SE'):'';
+  }
+  if(o.kind==='hijri') return hijriMap(y)[o.hm+'-'+o.hd]||'';
+  return '';
+}
+function occMap(y){
+  const m={};
+  (S.occasions||[]).forEach(o=>{ const d=occDate(o,y); if(d){ (m[d]=m[d]||[]).push(o) } });
+  return m;
+}
+function occKindLabel(o){
+  if(o.kind==='hijri') return 'هجرية · '+HJ_M[o.hm-1]+' '+o.hd;
+  if(o.kind==='once') return 'مرة واحدة';
+  if(o.kind==='nth') return 'محسوبة تلقائياً';
+  return 'سنوية ثابتة';
+}
+function openOccasions(){
+  const y=+today().slice(0,4);
+  const list=(S.occasions||[]).map(o=>({o,d:occDate(o,y)})).sort((a,b)=>(a.d||'9').localeCompare(b.d||'9'));
+  modal('مناسبات السنة',
+   `<p style="margin:0 0 14px;color:var(--muted);font-size:13.5px">
+      تظهر المناسبات تلقائياً في تقويم الشهر والسنة للتخطيط للعروض والباقات قبلها بوقت كافٍ.
+      ويحتسب النظام المناسبات الهجرية سنوياً (بفارق يوم تقريباً — الرؤية الرسمية هي المرجع).</p>
+    <div class="line-list">${list.length?list.map(x=>`<div class="line">
+        <span class="nm">${esc(x.o.name)}</span>
+        <span style="font-size:12px;color:var(--muted)">${occKindLabel(x.o)}</span>
+        <span class="pr" style="font-weight:600">${x.d?fdateShort(x.d):'—'}</span>
+        ${isOwner()?`<button class="btn quiet sm" data-act="occ-edit" data-id="${x.o.id}">تعديل</button>`:''}
+      </div>`).join(''):'<div class="line-empty">لا توجد مناسبات مسجّلة</div>'}</div>`,
+   `${isOwner()?`<button class="btn" data-act="occ-new">+ مناسبة جديدة</button>`:''}
+    <button class="btn quiet" data-act="close">إغلاق</button>`,true);
+}
+function openOccasion(id){
+  const o=id?byId(S.occasions,id):{id:null,name:'',kind:'fixed',md:'01-01',date:today(),hm:9,hd:1,note:''};
+  const md=(o.md||'01-01').split('-');
+  modal(id?'تعديل مناسبة':'مناسبة جديدة',
+   `<div class="field"><label>اسم المناسبة</label><input id="oName" value="${esc(o.name)}" placeholder="مثال: يوم الجدة"></div>
+    <div class="field"><label>نوع التاريخ</label><select id="oKind" data-act="occ-kind">
+      <option value="fixed" ${o.kind==='fixed'?'selected':''}>تتكرر سنوياً بتاريخ ميلادي ثابت</option>
+      <option value="hijri" ${o.kind==='hijri'?'selected':''}>تتكرر سنوياً بتاريخ هجري</option>
+      <option value="once" ${o.kind==='once'?'selected':''}>تاريخ محدّد لمرة واحدة</option>
+      ${o.kind==='nth'?`<option value="nth" selected>محسوبة تلقائياً (لا تُعدّل)</option>`:''}
+    </select></div>
+    <div id="oFixed" class="${o.kind==='fixed'?'':'hidden'}"><div class="row-2">
+      <div class="field"><label>اليوم</label><input id="oDay" type="number" min="1" max="31" value="${+md[1]||1}"></div>
+      <div class="field"><label>الشهر</label><select id="oMon">${GR_M.map((m,i)=>`<option value="${i+1}" ${(+md[0]||1)===i+1?'selected':''}>${m}</option>`).join('')}</select></div>
+    </div></div>
+    <div id="oHijri" class="${o.kind==='hijri'?'':'hidden'}"><div class="row-2">
+      <div class="field"><label>اليوم الهجري</label><input id="oHd" type="number" min="1" max="30" value="${o.hd||1}"></div>
+      <div class="field"><label>الشهر الهجري</label><select id="oHm">${HJ_M.map((m,i)=>`<option value="${i+1}" ${(o.hm||9)===i+1?'selected':''}>${m}</option>`).join('')}</select></div>
+    </div></div>
+    <div id="oOnce" class="${o.kind==='once'?'':'hidden'}"><div class="field"><label>التاريخ</label>
+      <input id="oDate" type="date" value="${o.date||today()}"></div></div>
+    <div class="field"><label>ملاحظة (اختياري)</label><input id="oNote" value="${esc(o.note||'')}" placeholder="مثال: إطلاق عرض الباقات قبلها بأسبوع"></div>`,
+   `<button class="btn" data-act="occ-save" data-id="${o.id||''}">حفظ</button>
+    ${o.id?`<span class="spacer"></span><button class="btn danger sm" data-act="occ-del" data-id="${o.id}">حذف</button>`:''}`);
+}
+function seedOccasions(){return[
+  {id:'o1',name:'رأس السنة الميلادية',kind:'fixed',md:'01-01',note:''},
+  {id:'o2',name:'يوم الحب',kind:'fixed',md:'02-14',note:'موسم رائج للهدايا والعروض'},
+  {id:'o3',name:'اليوم الرياضي للدولة',kind:'nth',month:2,dow:2,nth:2,note:'الثلاثاء الثاني من فبراير'},
+  {id:'o4',name:'يوم المرأة العالمي',kind:'fixed',md:'03-08',note:''},
+  {id:'o5',name:'يوم الأم',kind:'fixed',md:'03-21',note:'أعلى مواسم الباقات والهدايا'},
+  {id:'o6',name:'بداية رمضان',kind:'hijri',hm:9,hd:1,note:'تاريخ تقريبي — الرؤية الرسمية هي المرجع'},
+  {id:'o7',name:'عيد الفطر',kind:'hijri',hm:10,hd:1,note:'ذروة الحجوزات — يُنصح بترتيب جدول الفريق مبكراً'},
+  {id:'o8',name:'بداية موسم الحج',kind:'hijri',hm:12,hd:1,note:'تقريبي'},
+  {id:'o9',name:'عيد الأضحى',kind:'hijri',hm:12,hd:10,note:'ذروة الحجوزات'},
+  {id:'o10',name:'يوم المعلم العالمي',kind:'fixed',md:'10-05',note:''},
+  {id:'o11',name:'يوم الجدة',kind:'fixed',md:'10-21',note:'يمكن تعديل التاريخ بما يناسبكم'},
+  {id:'o12',name:'اليوم الوطني لدولة قطر',kind:'fixed',md:'12-18',note:'موسم عروض وطنية'}
+]}
+
+/* ========== 12D. PARTNER SETTLEMENT ========== */
+function payerOf(e){
+  if(e.payer) return e.payer;
+  const u=S.users.find(x=>x.name===e.by);
+  return u?u.id:'';
+}
+function partnerStats(){
+  const owners=S.users.filter(u=>u.role==='owner');
+  const shares=(S.settings&&S.settings.shares)||{};
+  const tot=owners.reduce((a,u)=>a+(+shares[u.id]||0),0);
+  const shareOf=u=>u.role!=='owner'?0:(tot>0?(+shares[u.id]||0)/tot:(owners.length?1/owners.length:0));
+  const E=sum(S.expenses,e=>e.amount);
+  const unknown=sum(S.expenses.filter(e=>!payerOf(e)),e=>e.amount);
+  const rows=S.users.map(u=>{
+    const paid=sum(S.expenses.filter(e=>payerOf(e)===u.id),e=>e.amount);
+    const out=sum((S.settles||[]).filter(t=>t.from===u.id),t=>t.amount);
+    const inn=sum((S.settles||[]).filter(t=>t.to===u.id),t=>t.amount);
+    const duty=E*shareOf(u);
+    return {u,paid,out,inn,duty,pct:shareOf(u)*100,net:paid+out-inn-duty};
+  }).filter(r=>r.u.role==='owner'||r.paid||r.out||r.inn);
+  return {rows,E,unknown};
+}
+function settleSuggest(rows){
+  const cred=rows.filter(r=>r.net>0.5).map(r=>({u:r.u,amt:r.net})).sort((a,b)=>b.amt-a.amt);
+  const debt=rows.filter(r=>r.net<-0.5).map(r=>({u:r.u,amt:-r.net})).sort((a,b)=>b.amt-a.amt);
+  const out=[]; let i=0,j=0;
+  while(i<debt.length&&j<cred.length){
+    const m=Math.min(debt[i].amt,cred[j].amt);
+    out.push({from:debt[i].u,to:cred[j].u,amt:m});
+    debt[i].amt-=m; cred[j].amt-=m;
+    if(debt[i].amt<0.5) i++;
+    if(cred[j].amt<0.5) j++;
+  }
+  return out;
+}
+function settleTab(){
+  const {rows,E,unknown}=partnerStats();
+  const sug=settleSuggest(rows);
+  const list=(S.settles||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const balanced=!sug.length;
+  return `<div class="grid g3" style="margin-bottom:16px">
+      <div class="card stat"><div class="lbl">إجمالي المصروفات (من البداية)</div><div class="val">${money(E)}<small>ر.ق</small></div>
+        <div class="note">${S.expenses.length} مصروف مسجل</div></div>
+      <div class="card stat"><div class="lbl">التسويات المسجلة</div><div class="val">${list.length}</div>
+        <div class="note">${money(sum(list,t=>t.amount))} ر.ق تحويلات بين الشريكات</div></div>
+      <div class="card stat ${balanced?'':'accent'}"><div class="lbl">الوضع الحالي</div>
+        <div class="val" style="font-size:${balanced?'22px':'26px'}">${balanced?'لا مستحقّات ✓':money(sug[0].amt)+' ر.ق'}</div>
+        <div class="note">${balanced?'لا توجد مستحقّات بين الشريكات':`${esc(sug[0].from.name)} التفاصيل في الجدول أدناه`}</div></div>
+    </div>
+    ${sug.length?`<div class="card" style="margin-bottom:16px;border-color:var(--gold)">
+      <h3>المطلوب للتسوية</h3><div class="card-sub">لتتساوى مساهمة كل شريكة بحسب نسبتها</div>
+      ${sug.map(x=>`<div class="alert-row">
+        <span class="dot" style="background:${x.from.color}"></span>
+        <span><b>${esc(x.from.name)}</b> تسدّد إلى <b>${esc(x.to.name)}</b></span>
+        <span class="qty num" style="color:var(--clay)">${money(x.amt)} ر.ق</span>
+        <button class="btn gold sm" style="margin-inline-start:12px" data-act="stl-new"
+          data-from="${x.from.id}" data-to="${x.to.id}" data-amt="${x.amt.toFixed(2)}">تسجيل السداد</button></div>`).join('')}
+    </div>`:`<div class="card" style="margin-bottom:16px;border-color:var(--sage)">
+      <div style="display:flex;align-items:center;gap:12px"><span class="stamp">لا مستحقّات</span>
+      <span style="font-size:14px">دفعت كل شريكة نصيبها بالكامل، ولا توجد مبالغ مستحقّة.</span></div></div>`}
+    <div class="card" style="margin-bottom:16px"><h3>مساهمة كل شريكة</h3>
+      <div class="card-sub">المبلغ المدفوع من حسابها الخاص مقابل نصيبها بحسب نسبة الشراكة</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>الشريكة</th><th>نسبتها</th><th>دفعت من حسابها</th><th>نصيبها من المصروف</th><th>تسويات سدّدتها</th><th>تسويات استلمتها</th><th>الرصيد</th></tr></thead>
+        <tbody>${rows.map(r=>`<tr>
+          <td><span class="dot" style="background:${r.u.color}"></span> <b>${esc(r.u.name)}</b>
+            ${r.u.role!=='owner'?'<div style="font-size:11.5px;color:var(--muted)">موظفة — تُردّ لها مصروفاتها كاملة</div>':''}</td>
+          <td class="num">${r.u.role==='owner'?r.pct.toFixed(0)+'%':'—'}</td>
+          <td class="num"><b>${money(r.paid)}</b></td>
+          <td class="num">${money(r.duty)}</td>
+          <td class="num">${money(r.out)}</td>
+          <td class="num">${money(r.inn)}</td>
+          <td class="num"><b style="color:${r.net>0.5?'var(--sage)':(r.net<-0.5?'var(--clay)':'inherit')}">
+            ${r.net>0.5?'لها '+money(r.net):(r.net<-0.5?'عليها '+money(-r.net):'لا مستحقّات')}</b></td></tr>`).join('')}
+        </tbody></table></div>
+      ${unknown>0?`<div style="margin-top:12px;background:var(--clay-soft);color:var(--clay);padding:10px 12px;border-radius:var(--r-sm);font-size:13px">
+        توجد مصروفات بقيمة ${money(unknown)} ر.ق لم يُحدَّد من دفعها — يُرجى تحديدها من تبويب المصروفات ليكون الحساب دقيقاً.</div>`:''}
+      <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn" data-act="stl-new">+ تسجيل تسوية يدوية</button>
+        <button class="btn quiet" data-act="shares-open">نِسَب الشراكة</button></div></div>
+    <div class="card"><h3>سجل التسويات</h3><div class="card-sub">كل مبلغ سدّدته شريكة للأخرى</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>التاريخ</th><th>من</th><th>إلى</th><th>المبلغ</th><th>الطريقة</th><th>ملاحظة</th><th></th></tr></thead>
+        <tbody>${list.length?list.map(t=>`<tr><td class="num">${fdateShort(t.date)}</td>
+          <td>${esc(staffName(t.from))}</td><td>${esc(staffName(t.to))}</td>
+          <td class="num"><b>${money(t.amount)}</b></td><td>${esc(t.method||'—')}</td>
+          <td style="font-size:13px;color:var(--muted)">${esc(t.note||'')}</td>
+          <td><button class="btn quiet sm" data-act="stl-del" data-id="${t.id}">حذف</button></td></tr>`).join('')
+          :`<tr><td colspan="7"><div class="empty">لا توجد تسويات مسجّلة بعد</div></td></tr>`}</tbody></table></div></div>`;
+}
+function openSettle(from,to,amt){
+  const owners=S.users;
+  modal('تسجيل تسوية بين الشريكات',
+   `<div class="row-2">
+      <div class="field"><label>من (الدافعة)</label><select id="yFrom">
+        ${owners.map(u=>`<option value="${u.id}" ${from===u.id?'selected':''}>${esc(u.name)}</option>`).join('')}</select></div>
+      <div class="field"><label>إلى (المستلمة)</label><select id="yTo">
+        ${owners.map(u=>`<option value="${u.id}" ${to===u.id?'selected':''}>${esc(u.name)}</option>`).join('')}</select></div></div>
+    <div class="row-3">
+      <div class="field"><label>المبلغ</label><input id="yAmt" type="number" step="10" value="${amt||0}"></div>
+      <div class="field"><label>التاريخ</label><input id="yDate" type="date" value="${today()}"></div>
+      <div class="field"><label>الطريقة</label><select id="yMethod"><option>تحويل بنكي</option><option>كاش</option><option>أخرى</option></select></div></div>
+    <div class="field"><label>ملاحظة</label><input id="yNote" placeholder="مثال: تسوية مصروفات شهر يوليو"></div>
+    <div style="background:var(--surface-2);padding:11px 13px;border-radius:var(--r-sm);font-size:13px;color:var(--muted)">
+      هذه حركة بين الشريكات، لا تُحتسب مصروفاً على المشروع، وإنما تعدّل الرصيد بينهما.</div>`,
+   `<button class="btn" data-act="stl-save">حفظ التسوية</button><button class="btn quiet" data-act="close">إلغاء</button>`);
+}
+function openShares(){
+  const owners=S.users.filter(u=>u.role==='owner');
+  const sh=(S.settings&&S.settings.shares)||{};
+  const tot=owners.reduce((a,u)=>a+(+sh[u.id]||0),0);
+  modal('نِسَب الشراكة',
+   `<p style="margin:0 0 14px;color:var(--muted);font-size:13.5px">
+      حدّدي نصيب كل شريكة من المصروفات. في حال عدم التحديد، تُقسَّم بالتساوي.</p>
+    ${owners.map(u=>`<div class="field"><label>${esc(u.name)}</label>
+      <input id="sh_${u.id}" type="number" min="0" max="100" value="${tot>0?(+sh[u.id]||0):Math.round(100/owners.length)}"> </div>`).join('')}
+    <div style="font-size:12.5px;color:var(--muted)">يجب أن يكون المجموع 100.</div>`,
+   `<button class="btn" data-act="shares-save">حفظ</button><button class="btn quiet" data-act="close">إلغاء</button>`);
+}
+
+/* ========== 12E. CLIENT PROFILE ========== */
+function clientData(c){
+  const bs=S.bookings.filter(b=>(c.phone&&b.phone===c.phone)||b.client===c.name)
+    .sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  const ids=new Set(bs.map(b=>b.id));
+  const invs=S.invoices.filter(v=>ids.has(v.bookingId)||((c.phone&&v.phone===c.phone)||v.client===c.name));
+  const done=bs.filter(b=>b.status==='done');
+  const spent=sum(invs,v=>v.total), paid=sum(invs,v=>invPaid(v));
+  const svc={}; done.forEach(b=>b.lines.forEach(l=>{ if(!l.inc) svc[l.name]=(svc[l.name]||0)+(l.qty||1) }));
+  const byStaff={}; done.forEach(b=>byStaff[b.staffId]=(byStaff[b.staffId]||0)+1);
+  const subs=(S.subs||[]).filter(x=>(c.phone&&x.phone===c.phone)||x.client===c.name);
+  const upcoming=bs.filter(b=>b.date>=today()&&b.status!=='cancelled'&&b.status!=='done');
+  const mats={};
+  S.movements.filter(m=>m.bookingId&&ids.has(m.bookingId)).forEach(m=>{
+    const it=byId(S.items,m.itemId); if(it) mats[it.name]=(mats[it.name]||0)+m.qty });
+  return {bs,invs,done,spent,paid,svc,byStaff,subs,upcoming,mats,
+    first:bs.length?bs[bs.length-1].date:'', last:done.length?done[0].date:''};
+}
+function openClient(id){
+  const c=byId(S.clients,id); if(!c) return;
+  const d=clientData(c);
+  const due=d.spent-d.paid;
+  const top=Object.entries(d.svc).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const staffTop=Object.entries(d.byStaff).sort((a,b)=>b[1]-a[1]);
+  const mats=Object.entries(d.mats).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const wa=(c.phone||'').replace(/\D/g,'');
+  const body=`
+    <div class="prof-head">
+      <div class="avatar" style="background:var(--plum);width:52px;height:52px;font-size:21px">${esc(c.name[0]||'؟')}</div>
+      <div style="flex:1">
+        <div style="font-family:var(--f-display);font-size:20px;font-weight:700">${esc(c.name)}</div>
+        <div style="font-size:13px;color:var(--muted)">${esc(c.area||'بدون منطقة')}${c.phone?' · '+esc(c.phone):''}
+          ${d.first?` · زبونة منذ ${fdateShort(d.first)}`:''}</div>
+      </div>
+      ${wa?`<a class="btn quiet sm" href="https://wa.me/${wa.length<=8?'974'+wa:wa}" target="_blank" rel="noopener">واتساب</a>`:''}
+      <button class="btn sm" data-act="cl-book" data-id="${c.id}">+ حجز جديد لها</button>
+    </div>
+    <div class="prof-stats">
+      <div><span class="k">زيارات منجزة</span><b>${d.done.length}</b></div>
+      <div><span class="k">إجمالي صرفها</span><b>${money(d.spent)}</b></div>
+      <div><span class="k">متوسط الزيارة</span><b>${money(d.done.length?d.spent/d.done.length:0)}</b></div>
+      <div><span class="k">المتبقٍّ عليها</span><b style="color:${due>0.5?'var(--clay)':'var(--sage)'}">${due>0.5?money(due):'لا يوجد'}</b></div>
+    </div>
+    ${d.subs.length?`<div class="prof-sec"><h4>الباقات</h4>
+      ${d.subs.map(s=>{const left=(s.sessions||0)-(s.used||0), dead=s.expiry&&s.expiry<today();
+        return `<div class="alert-row"><span class="chip ${left>0&&!dead?'sage':'grey'}">${left>0&&!dead?left+' متبقٍّة':(dead?'منتهية':'مستهلكة')}</span>
+        <span><b>${esc(s.packageName)}</b><br><span style="font-size:12px;color:var(--muted)">اشترتها ${fdateShort(s.date)}${s.expiry?` · تنتهي ${fdateShort(s.expiry)}`:''}</span></span>
+        <span class="qty num">${money(s.price)}</span></div>`}).join('')}</div>`:''}
+    ${d.upcoming.length?`<div class="prof-sec"><h4>مواعيد قادمة</h4>
+      ${d.upcoming.map(b=>`<div class="alert-row" data-act="bk-open" data-id="${b.id}" style="cursor:pointer">
+        <span class="dot" style="background:${staffColor(b.staffId)}"></span>
+        <span><b>${fdateShort(b.date)} · ${ftime(b.time)}</b><br><span style="font-size:12px;color:var(--muted)">${b.lines.map(l=>esc(l.name)).join('، ')}</span></span>
+        <span class="qty num">${money(bookingTotal(b))}</span></div>`).join('')}</div>`:''}
+    <div class="prof-sec"><h4>سجل الزيارات (${d.bs.length})</h4>
+      <div class="tbl-wrap" style="max-height:280px;overflow:auto">
+      <table><thead><tr><th>التاريخ</th><th>الخدمات</th><th>الأخصائية</th><th>المبلغ</th><th>الحالة</th></tr></thead>
+      <tbody>${d.bs.length?d.bs.map(b=>{const st=ST[b.status]||ST.confirmed;
+        const v=S.invoices.find(x=>x.bookingId===b.id);
+        return `<tr data-act="bk-open" data-id="${b.id}" style="cursor:pointer">
+        <td class="num">${fdateShort(b.date)}</td>
+        <td style="font-size:13px">${b.lines.filter(l=>!l.inc).map(l=>esc(l.name)).join('، ')||'—'}
+          ${b.notes?`<div style="font-size:11.5px;color:var(--muted)">${esc(b.notes)}</div>`:''}</td>
+        <td><span class="dot" style="background:${staffColor(b.staffId)}"></span> ${esc(staffName(b.staffId))}</td>
+        <td class="num">${money(bookingTotal(b))}${v&&invStatus(v)!=='paid'?`<div style="font-size:11px;color:var(--clay)">${PAYST[invStatus(v)].ar}</div>`:''}</td>
+        <td><span class="chip ${st.c}">${st.ar}</span></td></tr>`}).join('')
+        :`<tr><td colspan="5"><div class="empty">لا توجد زيارات بعد</div></td></tr>`}</tbody></table></div></div>
+    <div class="grid g2" style="gap:14px">
+      <div class="prof-sec"><h4>خدماتها المفضلة</h4>
+        ${top.length?top.map(([n,q])=>`<div class="alert-row"><span>${esc(n)}</span><span class="qty num">${q}×</span></div>`).join('')
+          :'<div style="color:var(--muted);font-size:13px;padding:6px 0">لا توجد زيارات منجزة بعد</div>'}</div>
+      <div class="prof-sec"><h4>من قدّمن لها الخدمة</h4>
+        ${staffTop.length?staffTop.map(([sid,n])=>`<div class="alert-row">
+          <span class="dot" style="background:${staffColor(sid)}"></span><span>${esc(staffName(sid))}</span>
+          <span class="qty num">${n} زيارة</span></div>`).join('')
+          :'<div style="color:var(--muted);font-size:13px;padding:6px 0">—</div>'}
+        ${mats.length?`<div style="margin-top:10px;font-size:12px;color:var(--muted)">مواد استُخدمت في خدمتها: ${mats.map(([n,q])=>esc(n)+' ('+q+')').join('، ')}</div>`:''}</div>
+    </div>
+    <div class="prof-sec"><h4>بيانات وملاحظات</h4>
+      <div class="row-3">
+        <div class="field"><label>الاسم</label><input id="clName" value="${esc(c.name)}"></div>
+        <div class="field"><label>الجوال</label><input id="clPhone" value="${esc(c.phone||'')}" inputmode="tel"></div>
+        <div class="field"><label>المنطقة</label><input id="clArea" value="${esc(c.area||'')}"></div>
+      </div>
+      <div class="field" style="margin-bottom:0"><label>ملاحظات دائمة عن الزبونة</label>
+        <textarea id="clNotes" placeholder="التفضيلات، الألوان، الحساسية، الأوقات المناسبة، وأي معلومة تفيد الأخصائية">${esc(c.notes||'')}</textarea></div>
+    </div>`;
+  modal('ملف الزبونة',body,
+   `<button class="btn" data-act="cl-save" data-id="${c.id}">حفظ البيانات والملاحظات</button>
+    ${isOwner()?`<span class="spacer"></span><button class="btn danger sm" data-act="cl-del" data-id="${c.id}">حذف الزبونة</button>`:''}`,true);
+}
+
+/* ========== 13. ACTIONS ========== */
+const FILT={bf:'bf',inf:'inf',af:'af',cf:'cf',tf:'tf'};
+function setFilter(key,k,v,refocus){
+  D[key]=D[key]||{}; D[key][k]=v; render();
+  if(refocus){ const el=document.querySelector(`[data-act="${key}"][data-k="${k}"]`);
+    if(el){ el.focus(); try{ el.setSelectionRange(el.value.length,el.value.length) }catch(e){} } }
+}
+document.addEventListener('input',e=>{
+  const el=e.target.closest('[data-act]'); if(!el) return;
+  const a=el.dataset.act;
+  if(FILT[a]&&el.tagName==='INPUT'&&(!el.type||el.type==='text')) setFilter(a,el.dataset.k,el.value,true);
+});
+document.addEventListener('change',e=>{
+  const el=e.target.closest('[data-act]'); if(!el) return;
+  const a=el.dataset.act;
+  if(a==='mv-item'||a==='mv-calc'){
+    const it=byId(S.items,val('mItem'));
+    const unitEl=document.getElementById('mUnit');
+    if(it&&unitEl){
+      if(a==='mv-item') unitEl.value=it.cost;
+      const hint=document.getElementById('mHint');
+      if(hint) hint.textContent='السعر المسجّل سابقاً: '+money(it.cost)+' ر.ق للوحدة';
+      const tot=document.getElementById('mTotal');
+      if(tot) tot.textContent='الإجمالي: '+money((parseFloat(unitEl.value)||0)*(parseFloat(val('mQty'))||1))+' ر.ق';
+    }
+    return;
+  }
+  if(a==='exp-item'||a==='exp-qty'){
+    const it=byId(S.items,val('eItem'));
+    const amtEl=document.getElementById('eAmt'), noteEl=document.getElementById('eNote'),
+          catEl=document.getElementById('eCat'), qty=Math.max(1,parseFloat(val('eQty'))||1);
+    if(it&&amtEl){
+      amtEl.value=(it.cost*qty).toFixed(2);
+      if(noteEl&&(!noteEl.value||a==='exp-item')) noteEl.value=it.name+(qty>1?' ×'+qty:'');
+      if(catEl&&a==='exp-item') catEl.value='بضاعة ومستلزمات';
+      const h=document.getElementById('eHint');
+      if(h) h.textContent='السعر المسجّل للوحدة: '+money(it.cost)+' ر.ق — عدّلي المبلغ إذا اختلف السعر، وسيُحدَّث سعر الصنف تلقائياً.';
+    }
+    return;
+  }
+  if(a==='occ-kind'){
+    const k=el.value;
+    ['oFixed','oHijri','oOnce'].forEach((sec,i)=>{
+      const node=document.getElementById(sec);
+      if(node) node.classList.toggle('hidden',k!==['fixed','hijri','once'][i]);
+    });
+    return;
+  }
+  if(FILT[a]&&(el.tagName==='SELECT'||(el.type&&el.type!=='text'))) setFilter(a,el.dataset.k,el.value,false);
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&document.getElementById('modal-host').innerHTML) close();
+  if(e.key==='Enter'&&!ME&&CFG&&document.getElementById('lu')) doLogin();
+  if(e.key==='Enter'&&!CFG&&document.getElementById('cfgUrl')) saveCfg();
+});
+
+function saveCfg(){
+  let url=val('cfgUrl').replace(/\/+$/,''), key=val('cfgKey');
+  if(!/^https?:\/\//.test(url)||!key){ root().innerHTML=setupView('يُرجى التحقق من الرابط والمفتاح'); return }
+  CFG={url,key}; LS.set(CFGK,CFG); render(); toast('تم حفظ إعدادات الاتصال');
+}
+async function doLogin(){
+  const btn=document.getElementById('loginBtn'); const u=val('lu'), p=val('lp');
+  if(!u||!p){ root().innerHTML=loginView('أدخلي اسم المستخدم وكلمة المرور'); return }
+  if(btn){ btn.textContent='جارٍ تسجيل الدخول…'; btn.disabled=true }
+  try{
+    const s=await signIn(u,p);
+    await afterAuth(s.user?s.user.id:(s.id));
+    toast('أهلاً  '+(ME?ME.name:''));
+  }catch(e){
+    const msg=/Invalid login/i.test(e.message)?'اسم المستخدم أو كلمة المرور غير صحيحة':e.message;
+    root().innerHTML=loginView(msg); const f=document.getElementById('lu'); if(f) f.value=u;
+  }
+}
+
+document.addEventListener('click',async e=>{
+  const el=e.target.closest('[data-act]'); if(!el) return;
+  const a=el.dataset.act, id=el.dataset.id;
+  if(a==='ovl'&&e.target!==el) return;
+  if(a==='cfg-reset') e.preventDefault();
+
+  try{
+  switch(a){
+    case 'cfg-save': saveCfg(); break;
+    case 'cfg-reset': LS.del(CFGK); CFG=null; signOutLocal(); render(); break;
+    case 'login': await doLogin(); break;
+    case 'logout': signOutLocal(); D={}; close(); render(); break;
+    case 'nav': VIEW=el.dataset.v; close(); render(); break;
+    case 'tab': TAB[el.dataset.k]=el.dataset.v; render(); break;
+    case 'ovl': case 'close': close(); break;
+    case 'print': window.print(); break;
+    case 'bf-today': setFilter('bf','date',today()); break;
+    case 'bf-mshift': {
+      const m=(D.bf&&D.bf.month)||monthOf(today());
+      const d=new Date(+m.slice(0,4),+m.slice(5,7)-1+(+el.dataset.s),1);
+      setFilter('bf','month',d.toLocaleDateString('sv-SE').slice(0,7)); break; }
+    case 'open-day': { D.bf=D.bf||{}; D.bf.date=el.dataset.d; TAB.bk='day'; render(); break; }
+    case 'open-month': { D.bf=D.bf||{}; D.bf.month=el.dataset.m; TAB.bk='month'; render(); break; }
+    case 'af-clear': D.af={month:'',status:'',q:''}; render(); break;
+    case 'sync': try{ await pull(); render(); toast('تم تحديث البيانات') }catch(err){ toast('تعذّرت المزامنة') } break;
+    case 'pwd': openPwd(); break;
+    case 'pwd-save': {
+      const n=val('wNew');
+      if(n.length<6){ toast('كلمة المرور يجب ألا تقل عن 6 خانات'); break }
+      if(n!==val('wNew2')){ toast('كلمتا المرور غير متطابقتين'); break }
+      await api('/auth/v1/user',{method:'PUT',body:JSON.stringify({password:n})});
+      close(); toast('تم تغيير كلمة المرور'); break; }
+
+    /* bookings */
+    case 'bk-new': openBooking(null); break;
+    case 'bk-open': openBooking(id); break;
+    case 'bk-save': await saveBooking(); break;
+    case 'ln-add': {
+      harvestB(); const sid=val('bSvc'), q=Math.max(1,parseInt(val('bQty'),10)||1);
+      if(sid.indexOf('p:')===0){
+        const p=byId(S.packages,sid.slice(2)); if(!p) break;
+        if(D.b.lines.some(l=>l.pkgSale&&l.pid===p.id)){ toast('الباقة مُضافة مسبقاً'); break }
+        const n=p.sessions||1;
+        D.b.lines.push({sid:sid,pid:p.id,pkgSale:true,price:p.price,qty:1,
+          name:'باقة: '+p.name+(n>1?' ('+n+' جلسات)':'')});
+        (p.lines||[]).forEach(l=>D.b.lines.push({sid:l.sid,pid:p.id,inc:true,price:0,qty:l.qty||1,name:l.name}));
+        if(n>1) D.b.newPkgId=p.id;
+        renderBooking(); break;
+      }
+      const s=byId(S.services,sid); if(!s) break;
+      const ex=D.b.lines.find(l=>l.sid===sid);
+      if(ex) ex.qty=(ex.qty||1)+q; else D.b.lines.push({sid:s.id,name:s.name,price:s.price,qty:q});
+      renderBooking(); break; }
+    case 'ln-rm': {
+      harvestB(); const gone=D.b.lines[+el.dataset.i];
+      D.b.lines.splice(+el.dataset.i,1);
+      if(gone&&gone.pkgSale){
+        D.b.lines=D.b.lines.filter(l=>!(l.inc&&l.pid===gone.pid));
+        if(D.b.newPkgId===gone.pid) D.b.newPkgId='';
+      }
+      renderBooking(); break; }
+    case 'bk-done': {
+      if(!await saveBooking(true)) break;
+      openConsume(D.b.id); break; }
+    case 'bk-cancel': {
+      if(!confirm('هل تريدين إلغاء هذا الحجز؟')) break;
+      const b=byId(S.bookings,D.b.id); b.status='cancelled';
+      await put('bookings',b); close(); render(); toast('تم إلغاء الحجز'); break; }
+    case 'bk-del': {
+      if(!confirm('حذف الحجز نهائياً؟ ستُحذف الفاتورة المرتبطة به أيضاً.')) break;
+      const bid=D.b.id, vids=S.invoices.filter(v=>v.bookingId===bid).map(v=>v.id);
+      S.bookings=S.bookings.filter(x=>x.id!==bid); S.invoices=S.invoices.filter(v=>v.bookingId!==bid);
+      await rm(bid); for(const vid of vids) await rm(vid);
+      close(); render(); toast('تم حذف الحجز'); break; }
+
+    /* client profile */
+    case 'cl-open': openClient(id); break;
+    case 'cl-save': {
+      const c=byId(S.clients,id); if(!c) break;
+      const nm=val('clName'); if(!nm){ toast('لا يمكن ترك الاسم فارغاً'); break }
+      Object.assign(c,{name:nm,phone:val('clPhone'),area:val('clArea'),notes:val('clNotes')});
+      await put('clients',c); close(); render(); toast('تم حفظ بيانات الزبونة'); break; }
+    case 'cl-del': {
+      if(!confirm('حذف الزبونة منذ القائمة؟ حجوزاتها وفواتيرها بتبقى محفوظة.')) break;
+      S.clients=S.clients.filter(x=>x.id!==id); await rm(id); close(); render(); break; }
+    case 'cl-book': {
+      const c=byId(S.clients,id); if(!c) break;
+      openBooking(null);
+      D.b.client=c.name; D.b.phone=c.phone||''; D.b.area=c.area||'';
+      renderBooking(); break; }
+
+    /* partner settlement */
+    case 'stl-new': openSettle(el.dataset.from,el.dataset.to,el.dataset.amt); break;
+    case 'stl-save': {
+      const from=val('yFrom'), to=val('yTo'), amt=numv('yAmt');
+      if(from===to){ toast('اختاري شريكتين مختلفتين'); break }
+      if(amt<=0){ toast('أدخلي مبلغاً صحيحاً'); break }
+      const t={id:uid('y'),from:from,to:to,amount:amt,date:val('yDate')||today(),
+        method:val('yMethod'),note:val('yNote'),by:ME.name};
+      S.settles.push(t); await put('settles',t);
+      close(); render(); toast('تم تسجيل التسوية'); break; }
+    case 'stl-del': {
+      if(!confirm('حذف التسوية؟')) break;
+      S.settles=S.settles.filter(x=>x.id!==id); await rm(id); render(); break; }
+    case 'shares-open': openShares(); break;
+    case 'shares-save': {
+      const owners=S.users.filter(u=>u.role==='owner');
+      const sh={}; let t=0;
+      owners.forEach(u=>{ const v=numv('sh_'+u.id); sh[u.id]=v; t+=v });
+      if(Math.round(t)!==100){ toast('يجب أن يكون المجموع 100 — القيمة الحالية — الحين '+t); break }
+      S.settings.shares=sh; await putSettings();
+      close(); render(); toast('تم حفظ النسب'); break; }
+
+    /* occasions */
+    case 'occ-manage': openOccasions(); break;
+    case 'occ-new': openOccasion(null); break;
+    case 'occ-edit': openOccasion(id); break;
+    case 'occ-save': {
+      const name=val('oName'); if(!name){ toast('أدخلي اسم المناسبة'); break }
+      const kind=val('oKind');
+      const o=id?byId(S.occasions,id):{id:uid('o')};
+      o.name=name; o.note=val('oNote');
+      if(kind!=='nth'){
+        o.kind=kind;
+        if(kind==='fixed') o.md=String(numv('oMon')||1).padStart(2,'0')+'-'+String(numv('oDay')||1).padStart(2,'0');
+        if(kind==='hijri'){ o.hm=numv('oHm')||1; o.hd=numv('oHd')||1 }
+        if(kind==='once') o.date=val('oDate');
+      }
+      if(!id) S.occasions.push(o);
+      await put('occasions',o); close(); render(); openOccasions(); toast('تم حفظ المناسبة'); break; }
+    case 'occ-del': {
+      if(!confirm('حذف المناسبة؟')) break;
+      S.occasions=S.occasions.filter(x=>x.id!==id); await rm(id); close(); render(); openOccasions(); break; }
+    case 'occ-kind': break;
+
+    /* tasks */
+    case 'task-new': openTask(null); break;
+    case 'task-open': openTask(id); break;
+    case 'task-quick': {
+      const title=val('tqTitle'); if(!title){ toast('أدخلي عنوان المهمة'); break }
+      const t={id:uid('t'),title:title,note:'',assignee:val('tqWho'),due:val('tqDue'),prio:'normal',
+        status:'open',by:ME.name,createdAt:new Date().toISOString(),doneAt:''};
+      S.tasks.push(t); await put('tasks',t); render(); toast('تمت إضافة المهمة'); break; }
+    case 'task-toggle': {
+      const t=byId(S.tasks,id); if(!t) break;
+      if(t.status==='done'){ t.status='open'; t.doneAt='' } else { t.status='done'; t.doneAt=new Date().toISOString() }
+      await put('tasks',t); render(); break; }
+    case 'task-save': {
+      const title=val('tTitle'); if(!title){ toast('أدخلي عنوان المهمة'); break }
+      const st=val('tStatus');
+      let t;
+      if(id){ t=byId(S.tasks,id) } else { t={id:uid('t'),by:ME.name,createdAt:new Date().toISOString(),doneAt:''}; S.tasks.push(t) }
+      if(isOwner()){ Object.assign(t,{title:title,note:val('tNote'),assignee:val('tWho'),due:val('tDue'),prio:val('tPrio')}) }
+      if(st==='done'&&t.status!=='done') t.doneAt=new Date().toISOString();
+      if(st!=='done') t.doneAt='';
+      t.status=st;
+      await put('tasks',t); close(); render(); toast('تم حفظ المهمة'); break; }
+    case 'task-del': {
+      if(!confirm('حذف المهمة؟')) break;
+      S.tasks=S.tasks.filter(x=>x.id!==id); await rm(id); close(); render(); toast('تم حذف المهمة'); break; }
+
+    /* packages */
+    case 'pkg-new': openPackage(null); break;
+    case 'pkg-edit': openPackage(id); break;
+    case 'pln-add': {
+      harvestP(); const s=byId(S.services,val('pSvc')), q=Math.max(1,parseInt(val('pQty'),10)||1);
+      if(!s) break;
+      const ex=D.p.lines.find(l=>l.sid===s.id);
+      if(ex) ex.qty=(ex.qty||1)+q; else D.p.lines.push({sid:s.id,name:s.name,price:s.price,qty:q});
+      renderPackage(); break; }
+    case 'pln-rm': harvestP(); D.p.lines.splice(+el.dataset.i,1); renderPackage(); break;
+    case 'pkg-save': {
+      harvestP(); const p=D.p;
+      if(!p.name){ toast('أدخلي اسم الباقة'); break }
+      if(!p.lines.length){ toast('أضيفي خدمة واحدة على الأقل إلى الباقة'); break }
+      if(!p.id){ p.id=uid('p'); S.packages.push(JSON.parse(JSON.stringify(p))) }
+      else { const i=S.packages.findIndex(x=>x.id===p.id); S.packages[i]=JSON.parse(JSON.stringify(p)) }
+      await put('packages',byId(S.packages,p.id)); close(); render(); toast('تم حفظ الباقة'); break; }
+    case 'pkg-del': {
+      if(!confirm('حذف الباقة؟ ستبقى الباقات المباعة للزبونات سارية.')) break;
+      const pid=id||(D.p&&D.p.id); S.packages=S.packages.filter(x=>x.id!==pid); await rm(pid);
+      close(); render(); toast('تم حذف الباقة'); break; }
+    case 'sell-new': openSell(el.dataset.pid); break;
+    case 'sell-save': {
+      const name=val('zClient'), pk=byId(S.packages,val('zPkg')), price=numv('zPrice'), date=val('zDate')||today();
+      if(!name){ toast('أدخلي اسم الزبونة'); break }
+      if(!pk){ toast('اختاري الباقة'); break }
+      const months=+pk.validMonths||0; let expiry='';
+      if(months){ const d=new Date(date+'T00:00'); d.setMonth(d.getMonth()+months); expiry=d.toLocaleDateString('sv-SE') }
+      const sub={id:uid('k'),client:name,phone:val('zPhone'),packageId:pk.id,packageName:pk.name,
+        sessions:Math.max(1,pk.sessions||1),used:0,price:price,date:date,expiry:expiry,
+        lines:JSON.parse(JSON.stringify(pk.lines)),by:ME.name};
+      S.subs.push(sub);
+      const v={id:uid('v'),no:nextInvNo(),bookingId:'',client:name,phone:sub.phone,date:date,staffId:ME.id,
+        lines:[{name:'باقة: '+pk.name+' ('+sub.sessions+' جلسة)',price:price,qty:1}],transport:0,discount:0,total:price,
+        payments:(val('zPaid')==='1'?[{amount:price,method:val('zMethod'),date:date,by:ME.name}]:[]),
+        createdAt:new Date().toISOString()};
+      S.invoices.push(v);
+      const c=upsertClient({client:name,phone:sub.phone,area:''});
+      await put('subs',sub); await put('invoices',v); if(c) await put('clients',c);
+      close(); render(); toast('تم بيع الباقة — صدرت الفاتورة '+v.no); openInvoice(v.id); break; }
+    case 'sub-del': {
+      if(!confirm('حذف الباقة المباعة من السجل؟')) break;
+      S.subs=S.subs.filter(x=>x.id!==id); await rm(id); render(); break; }
+    case 'pkg-use': {
+      harvestB(); const s=byId(S.subs,el.dataset.sub); if(!s) break;
+      D.b.subId=s.id;
+      (s.lines||[]).forEach(l=>D.b.lines.push({sid:l.sid,name:l.name+' (من الباقة)',price:0,qty:l.qty||1,pkg:true}));
+      renderBooking(); break; }
+    case 'pkg-clear': {
+      harvestB(); D.b.subId=''; D.b.lines=D.b.lines.filter(l=>!l.pkg); renderBooking(); break; }
+    case 'consume-skip': await finishBooking(D.finishId); break;
+    case 'consume-save': {
+      const low=[];
+      for(const it of S.items){
+        const inp=document.getElementById('c_'+it.id);
+        const q=inp?Math.max(0,parseFloat(inp.value)||0):0;
+        if(q>0){
+          it.qty=Math.max(0,it.qty-q);
+          const mv={id:uid('m'),itemId:it.id,type:'out',qty:q,by:ME.name,at:today()+'T00:00',
+            bookingId:D.finishId,note:'استهلاك موعد'};
+          S.movements.push(mv);
+          await put('items',it); await put('movements',mv);
+          if(it.qty<=it.min) low.push(it.name);
+        }
+      }
+      await finishBooking(D.finishId);
+      if(low.length) setTimeout(()=>toast('تنبيه: '+low.join('، ')+' وصلت إلى الحد الأدنى'),1500);
+      break; }
+
+    /* inventory */
+    case 'item-new': openItem(null); break;
+    case 'item-edit': openItem(id); break;
+    case 'item-save': {
+      const name=val('iName'); if(!name){ toast('أدخلي اسم الصنف'); break }
+      const o={name,cat:val('iCat')||'عام',unit:val('iUnit')||'حبة',qty:numv('iQty'),min:numv('iMin'),
+        cost:numv('iCost'),cost0:numv('iCost0')||numv('iCost'),supplier:val('iSup'),url:val('iUrl'),loc:val('iLoc')};
+      let rec;
+      if(id){ rec=byId(S.items,id);
+        if(numv('iCost')!==rec.cost) o.costAt=today();
+        Object.assign(rec,o) }
+      else { rec=Object.assign({id:uid('i'),costAt:today()},o); S.items.push(rec) }
+      await put('items',rec); close(); render(); toast('تم حفظ الصنف'); break; }
+    case 'item-del': {
+      if(!confirm('حذف الصنف من المخزون؟')) break;
+      S.items=S.items.filter(x=>x.id!==id); await rm(id); close(); render(); toast('تم حذف الصنف'); break; }
+    case 'mv-out': {
+      if(el.dataset.bid&&document.getElementById('bClient')) await saveBooking(true);
+      openMove('out',id,el.dataset.bid); break; }
+    case 'mv-in': openMove('in',id); break;
+    case 'mv-save': {
+      const type=el.dataset.type, it=byId(S.items,val('mItem')), q=Math.max(1,numv('mQty'));
+      if(!it){ toast('اختاري الصنف'); break }
+      if(type==='out'&&q>it.qty){ toast('الكمية المطلوبة أكبر من المتوفّر ('+it.qty+')'); break }
+      it.qty=type==='out'?it.qty-q:it.qty+q;
+      const mv={id:uid('m'),itemId:it.id,type:type,qty:q,by:ME.name,at:(val('mDate')||today())+'T00:00',
+        bookingId:type==='out'?val('mBk'):'',note:val('mNote')};
+      S.movements.push(mv);
+      await put('items',it); await put('movements',mv);
+      if(type==='in'){ const unit=numv('mUnit'); const c=unit*q;
+        if(unit>0&&unit!==it.cost){
+          if(it.cost0==null) it.cost0=it.cost;
+          it.cost=unit; it.costAt=val('mDate')||today(); await put('items',it); }
+        if(c>0&&val('mExp')==='1'){
+          const ex={id:uid('e'),date:val('mDate')||today(),cat:'بضاعة ومستلزمات',amount:c,
+            note:it.name+' ×'+q,by:ME.name,payer:ME.id};
+          S.expenses.push(ex); await put('expenses',ex) } }
+      close(); render();
+      toast(type==='out'?`تم صرف ${q} ${it.unit} من ${it.name}`+(it.qty<=it.min?' — الصنف أصبح تحت الحد الأدنى!':''):'تم تسجيل الاستلام');
+      break; }
+
+    /* invoices & money */
+    case 'inv-open': openInvoice(id); break;
+    case 'pay-new': openPay(id); break;
+    case 'pay-save': {
+      const v=byId(S.invoices,id), amt=numv('pAmt');
+      if(amt<=0){ toast('أدخلي مبلغاً صحيحاً'); break }
+      v.payments=v.payments||[];
+      v.payments.push({amount:amt,method:val('pMethod'),date:val('pDate')||today(),by:ME.name});
+      await put('invoices',v); render(); openInvoice(v.id); toast('تم تسجيل الدفعة'); break; }
+    case 'inv-del': {
+      if(!confirm('حذف الفاتورة؟')) break;
+      S.invoices=S.invoices.filter(x=>x.id!==id); await rm(id); close(); render(); toast('تم حذف الفاتورة'); break; }
+    case 'exp-new': openExpense(null); break;
+    case 'exp-edit': openExpense(id); break;
+    case 'exp-save': {
+      const amt=numv('eAmt'); if(amt<=0){ toast('أدخلي مبلغاً صحيحاً'); break }
+      let ex;
+      if(id){ ex=byId(S.expenses,id) } else { ex={id:uid('e'),by:ME.name}; S.expenses.push(ex) }
+      Object.assign(ex,{date:val('eDate')||today(),cat:val('eCat'),amount:amt,note:val('eNote'),
+        payer:val('ePayer'),itemId:val('eItem'),qty:numv('eQty')||1});
+      const li=byId(S.items,val('eItem'));
+      if(li&&numv('eQty')>0){ const unit=amt/numv('eQty');
+        if(unit>0&&Math.abs(unit-li.cost)>0.009){
+          if(li.cost0==null) li.cost0=li.cost;
+          li.cost=Math.round(unit*100)/100; li.costAt=val('eDate')||today(); await put('items',li) } }
+      await put('expenses',ex); close(); render(); toast('تم حفظ المصروف'); break; }
+    case 'exp-del': {
+      if(!confirm('حذف المصروف؟')) break;
+      S.expenses=S.expenses.filter(x=>x.id!==id); await rm(id); render(); break; }
+
+    /* services */
+    case 'svc-new': openService(null); break;
+    case 'svc-edit': openService(id); break;
+    case 'svc-save': {
+      const name=val('sName'); if(!name){ toast('أدخلي اسم الخدمة'); break }
+      const o={name,cat:val('sCat')||'عام',price:numv('sPrice'),dur:numv('sDur')||30};
+      let rec;
+      if(id){ rec=byId(S.services,id); Object.assign(rec,o) } else { rec=Object.assign({id:uid('s')},o); S.services.push(rec) }
+      await put('services',rec); close(); render(); toast('تم حفظ الخدمة'); break; }
+    case 'svc-del': {
+      if(!confirm('حذف الخدمة من قائمة الأسعار؟ لن تتأثر الحجوزات السابقة.')) break;
+      S.services=S.services.filter(x=>x.id!==id); await rm(id); render(); break; }
+
+    /* users */
+    case 'usr-new': openUser(null); break;
+    case 'usr-edit': openUser(id); break;
+    case 'usr-save': {
+      const name=val('uName'), role=val('uRole'), title=val('uTitle'), color=val('uColor');
+      if(!name){ toast('أدخلي الاسم'); break }
+      if(id){
+        const u=byId(S.users,id); Object.assign(u,{name,title,role,color});
+        if(id===ME.id) ME=u;
+        await putProfile({id:u.id,name:u.name,username:u.username,title:u.title,role:u.role,color:u.color});
+      }else{
+        const un=val('uUser').toLowerCase(), pw=val('uPass');
+        if(!un||pw.length<6){ toast('أدخلي اسم مستخدم وكلمة مرور لا تقل عن 6 خانات'); break }
+        if(S.users.some(u=>(u.username||'').toLowerCase()===un)){ toast('اسم المستخدم مستخدم مسبقاً'); break }
+        const btn=el; btn.textContent='جارٍ الإنشاء…'; btn.disabled=true;
+        const created=await signUpUser(un,pw,{name:name,role:role,title:title,color:color});
+        await new Promise(r=>setTimeout(r,600));
+        await putProfile({id:created.id,name:name,username:un,title:title,role:role,color:color});
+      }
+      await pull(); ME=S.users.find(u=>u.id===ME.id)||ME;
+      close(); render(); toast('تم حفظ البيانات'); break; }
+    case 'usr-del': {
+      if(id===ME.id){ toast('لا يمكن حذف حسابك الخاص'); break }
+      if(!confirm('إيقاف دخول هذه المستخدمة؟ حجوزاتها بتبقى مسجلة باسمها.')) break;
+      try{ await api('/rest/v1/profiles?id=eq.'+encodeURIComponent(id),{method:'DELETE'}) }catch(err){ toast(err.message) }
+      await pull(); render(); toast('تم إيقاف الحساب'); break; }
+  }
+  }catch(err){ console.error(err); toast(err.message||'حدث خطأ') }
+});
+})();
+</script>
+</body>
+</html>
