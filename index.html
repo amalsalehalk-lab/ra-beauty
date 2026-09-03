@@ -1021,7 +1021,9 @@ function vInventory(){
 
   return head('المخزون','الكميات المتوفّرة، مع تنبيه عند انخفاض الصنف عن الحد الأدنى',
     `<button class="btn quiet" data-act="mv-out">− صرف من المخزون</button>
-     ${isOwner()?`<button class="btn quiet" data-act="mv-in">+ استلام بضاعة</button><button class="btn" data-act="item-new">+ صنف جديد</button>`:''}`)
+     ${isOwner()?`<button class="btn quiet" data-act="mv-in">+ استلام بضاعة</button>
+        <button class="btn quiet" data-act="imp-open">استيراد أصناف</button>
+        <button class="btn" data-act="item-new">+ صنف جديد</button>`:''}`)
   +tabs
   +`<div class="grid g3" style="margin-bottom:16px">
       <div class="card stat"><div class="lbl">عدد الأصناف</div><div class="val">${S.items.length}</div></div>
@@ -1035,7 +1037,7 @@ function vInventory(){
         ${cats.map(c=>`<option value="${esc(c)}" ${f.cat===c?'selected':''}>${esc(c)}</option>`).join('')}</select>
     </div>
     <div class="card"><div class="tbl-wrap"><table>
-      <thead><tr><th>الصنف</th><th>الفئة</th><th>المتوفر</th><th>الحد الأدنى</th><th>الحالة</th><th>سعر الشراء الأول</th><th>سعر الشراء الأخير</th><th>المتعاون</th><th></th></tr></thead>
+      <thead><tr><th>الصنف</th><th>الفئة</th><th>المتوفر</th><th>الحد الأدنى</th><th>الحالة</th><th>سعر الشراء الأول</th><th>سعر الشراء الأخير</th><th>تكلفة الاستخدام</th><th>المتعاون</th><th></th></tr></thead>
       <tbody>${list.length?list.map(i=>{
         const ratio=Math.min(100,(i.qty/Math.max(1,i.min*2))*100);
         const cls=i.qty<=0?'out':(i.qty<=i.min?'low':'');
@@ -1049,7 +1051,9 @@ function vInventory(){
             if(!b||Math.abs(i.cost-b)<0.009) return '';
             const up=i.cost>b, pct=Math.abs((i.cost-b)/b*100);
             return `<div style="font-size:11px;color:${up?'var(--clay)':'var(--sage)'}">${up?'▲':'▼'} ${pct.toFixed(0)}%</div>`})()}
-          ${i.costAt?`<div style="font-size:11px;color:var(--muted)">${fdateShort(i.costAt)}</div>`:''}</td><td style="font-size:13px">${esc(i.supplier||'—')}
+          ${i.costAt?`<div style="font-size:11px;color:var(--muted)">${fdateShort(i.costAt)}</div>`:''}</td>
+        <td class="num"><b>${money(costPerUse(i))}</b>
+          <div style="font-size:11px;color:var(--muted)">${usesOf(i)} استخدام/عبوة</div></td><td style="font-size:13px">${esc(i.supplier||'—')}
           <div style="margin-top:3px;display:flex;gap:8px">
             ${i.url?`<a href="${esc(i.url)}" target="_blank" rel="noopener" style="font-size:11.5px">الموقع ↗</a>`:''}
             ${i.loc?(/^https?:/.test(i.loc)?`<a href="${esc(i.loc)}" target="_blank" rel="noopener" style="font-size:11.5px">الموقع ↗</a>`
@@ -1057,7 +1061,7 @@ function vInventory(){
           </div></td>
         <td style="white-space:nowrap"><button class="btn quiet sm" data-act="mv-out" data-id="${i.id}">صرف</button>
         ${isOwner()?`<button class="btn quiet sm" data-act="item-edit" data-id="${i.id}">تعديل</button>`:''}</td></tr>`}).join('')
-        :`<tr><td colspan="9"><div class="empty"><div class="big">لا توجد أصناف</div>ابدئي بإضافة أول صنف إلى المخزون</div></td></tr>`}</tbody>
+        :`<tr><td colspan="10"><div class="empty"><div class="big">لا توجد أصناف</div>ابدئي بإضافة أول صنف إلى المخزون</div></td></tr>`}</tbody>
     </table></div></div>`;
 }
 
@@ -1241,14 +1245,30 @@ function vServices(){
   }
   return head('الخدمات والأسعار','قائمة الأسعار المستخدمة في الحجوزات والفواتير',
     `<button class="btn" data-act="svc-new">+ خدمة جديدة</button>`)+tabs
+  +(function(){
+      const withR=S.services.filter(s=>s.recipe&&s.recipe.length);
+      const weak=withR.filter(s=>serviceProfit(s).pct<40);
+      const avg=withR.length?sum(withR,s=>serviceProfit(s).pct)/withR.length:0;
+      return `<div class="grid g3" style="margin-bottom:16px">
+        <div class="card stat"><div class="lbl">خدمات محدّدة التكلفة</div><div class="val">${withR.length}<small> من ${S.services.length}</small></div>
+          <div class="note">${S.services.length-withR.length} بحاجة لتحديد موادها</div></div>
+        <div class="card stat accent"><div class="lbl">متوسط هامش الربح</div><div class="val">${avg.toFixed(0)}<small>%</small></div></div>
+        <div class="card stat"><div class="lbl">خدمات هامشها ضعيف</div><div class="val" style="color:${weak.length?'var(--clay)':'inherit'}">${weak.length}</div>
+          <div class="note">${weak.slice(0,3).map(s=>esc(s.name)).join('، ')||'الهوامش جيدة'}</div></div>
+      </div>`})()
   +cats.map(c=>`<div class="card" style="margin-bottom:16px"><h3>${esc(c)}</h3>
      <div class="card-sub">${S.services.filter(s=>s.cat===c).length} خدمات</div>
-     <table><thead><tr><th>الخدمة</th><th>السعر</th><th>المدة</th><th></th></tr></thead><tbody>
-     ${S.services.filter(s=>s.cat===c).map(s=>`<tr><td><b>${esc(s.name)}</b></td><td class="num">${money(s.price)} ر.ق</td>
-       <td class="num">${s.dur} دقيقة</td>
+     <div class="tbl-wrap"><table><thead><tr><th>الخدمة</th><th>سعر البيع</th><th>تكلفة المواد</th><th>الربح</th><th>الهامش</th><th>المدة</th><th></th></tr></thead><tbody>
+     ${S.services.filter(s=>s.cat===c).map(s=>{const x=serviceProfit(s); return `<tr>
+       <td><b>${esc(s.name)}</b>${x.has?`<div style="font-size:11.5px;color:var(--muted)">${s.recipe.length} مادة</div>`:''}</td>
+       <td class="num">${money(s.price)}</td>
+       <td class="num" style="color:var(--muted)">${x.has?money(x.cost):'—'}</td>
+       <td class="num"><b style="color:${x.has?(x.profit>=0?'var(--sage)':'var(--clay)'):'inherit'}">${x.has?money(x.profit):'—'}</b></td>
+       <td>${marginChip(x)}</td>
+       <td class="num">${s.dur} د</td>
        <td style="white-space:nowrap"><button class="btn quiet sm" data-act="svc-edit" data-id="${s.id}">تعديل</button>
-       <button class="btn quiet sm" data-act="svc-del" data-id="${s.id}">حذف</button></td></tr>`).join('')}
-     </tbody></table></div>`).join('');
+       <button class="btn quiet sm" data-act="svc-del" data-id="${s.id}">حذف</button></td></tr>`}).join('')}
+     </tbody></table></div></div>`).join('');
 }
 
 /* ========== 11. TEAM ========== */
@@ -1438,6 +1458,12 @@ function openItem(id){
       <div class="field"><label>سعر الشراء الأخير</label><input id="iCost" type="number" step="1" value="${i.cost}"></div>
       <div class="field"><label>اسم المتعاون / المورّد</label><input id="iSup" value="${esc(i.supplier||'')}"></div></div>
     <div class="row-2">
+      <div class="field"><label>عدد الاستخدامات للعبوة الواحدة</label>
+        <input id="iUses" type="number" min="1" value="${i.usesPerPack||15}">
+        <div style="font-size:11.5px;color:var(--muted);margin-top:5px">الافتراضي 15 استخداماً لكل عبوة</div></div>
+      <div class="field"><label>تكلفة الاستخدام الواحد</label>
+        <input value="${money(costPerUse(i))} ر.ق" disabled></div></div>
+    <div class="row-2">
       <div class="field"><label>رابط الموقع الإلكتروني</label><input id="iUrl" dir="ltr" value="${esc(i.url||'')}" placeholder="https://..."></div>
       <div class="field"><label>الموقع الجغرافي (رابط خرائط أو عنوان)</label><input id="iLoc" dir="ltr" value="${esc(i.loc||'')}" placeholder="https://maps.app.goo.gl/..."></div></div>`,
    `<button class="btn" data-act="item-save" data-id="${id||''}">حفظ</button>
@@ -1490,15 +1516,72 @@ function openExpense(id){
       يُبنى حساب الشريكات في تبويب «حساب الشريكات» على هذا التحديد.</div>`,
    `<button class="btn" data-act="exp-save" data-id="${id||''}">حفظ المصروف</button><button class="btn quiet" data-act="close">إلغاء</button>`);
 }
+/* ========== 12F. COST & MARGIN ========== */
+const USES_DEFAULT=15;
+const usesOf=i=>Math.max(1,+((i&&i.usesPerPack)||USES_DEFAULT));
+const costPerUse=i=>i?(+i.cost||0)/usesOf(i):0;
+function serviceCost(s){
+  return sum((s&&s.recipe)||[],r=>{ const it=byId(S.items,r.itemId); return it?costPerUse(it)*Math.max(1,+r.uses||1):0 });
+}
+function serviceProfit(s){
+  const c=serviceCost(s), p=+((s&&s.price))||0;
+  return {cost:c, profit:p-c, pct:p>0?((p-c)/p*100):0, has:!!(s&&s.recipe&&s.recipe.length)};
+}
+function marginChip(x){
+  if(!x.has) return '<span class="chip grey">لم تُحدَّد المواد</span>';
+  const cl=x.pct>=60?'sage':(x.pct>=40?'gold':'clay');
+  return `<span class="chip ${cl}">${x.pct.toFixed(0)}%</span>`;
+}
+function harvestS(){
+  const s=D.s; if(!document.getElementById('sName')) return;
+  s.name=val('sName'); s.cat=val('sCat'); s.price=numv('sPrice'); s.dur=numv('sDur');
+}
 function openService(id){
-  const s=id?byId(S.services,id):{name:'',cat:'',price:0,dur:30};
-  modal(id?'تعديل خدمة':'خدمة جديدة',
+  const s=id?byId(S.services,id):null;
+  D.s = s?JSON.parse(JSON.stringify(s)):{id:null,name:'',cat:'',price:0,dur:30,recipe:[]};
+  if(!D.s.recipe) D.s.recipe=[];
+  renderService();
+}
+function renderService(){
+  const s=D.s, x=serviceProfit(s);
+  const lines=s.recipe.length?s.recipe.map((r,i)=>{
+    const it=byId(S.items,r.itemId);
+    return `<div class="line"><span class="nm">${esc(it?it.name:'صنف محذوف')}</span>
+      <span style="color:var(--muted);font-size:12.5px">${r.uses>1?'×'+r.uses:''} · ${money(costPerUse(it))} للاستخدام</span>
+      <span class="pr">${money(costPerUse(it)*Math.max(1,+r.uses||1))}</span>
+      <button class="rm" data-act="sln-rm" data-i="${i}">×</button></div>`}).join('')
+    :`<div class="line-empty">أضيفي المواد المستخدمة في هذه الخدمة لحساب تكلفتها</div>`;
+  modal(s.id?'تعديل خدمة':'خدمة جديدة',
    `<div class="row-2"><div class="field"><label>اسم الخدمة</label><input id="sName" value="${esc(s.name)}"></div>
      <div class="field"><label>الفئة</label><input id="sCat" list="svcCats" value="${esc(s.cat)}">
-       <datalist id="svcCats">${[...new Set(S.services.map(x=>x.cat))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div></div>
-    <div class="row-2"><div class="field"><label>السعر (ر.ق)</label><input id="sPrice" type="number" step="5" value="${s.price}"></div>
-     <div class="field"><label>المدة (دقيقة)</label><input id="sDur" type="number" step="5" value="${s.dur}"></div></div>`,
-   `<button class="btn" data-act="svc-save" data-id="${id||''}">حفظ</button><button class="btn quiet" data-act="close">إلغاء</button>`);
+       <datalist id="svcCats">${[...new Set(S.services.map(v=>v.cat))].map(v=>`<option value="${esc(v)}">`).join('')}</datalist></div></div>
+    <div class="row-2"><div class="field"><label>سعر البيع (ر.ق)</label><input id="sPrice" type="number" step="5" value="${s.price}"></div>
+     <div class="field"><label>المدة (دقيقة)</label><input id="sDur" type="number" step="5" value="${s.dur}"></div></div>
+    <div class="field"><label>المواد المستخدمة في الخدمة</label>
+      <div class="line-list">${lines}</div>
+      <div style="display:flex;gap:8px">
+        <select id="sItem" style="flex:1;padding:9px 11px;border:1px solid var(--line);border-radius:var(--r-sm)">
+          ${S.items.map(i=>`<option value="${i.id}">${esc(i.name)} — ${money(costPerUse(i))} ر.ق للاستخدام</option>`).join('')}</select>
+        <input id="sUses" type="number" min="1" value="1" style="width:70px;padding:9px;border:1px solid var(--line);border-radius:var(--r-sm)">
+        <button class="btn quiet" data-act="sln-add">إضافة</button></div>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:6px">
+        تُحسب تكلفة الاستخدام الواحد = سعر شراء العبوة ÷ عدد استخداماتها (${USES_DEFAULT} افتراضياً)، وتُعدَّل لكل صنف من صفحة المخزون.</div></div>
+    <div class="totals" style="margin-bottom:14px">
+      <div><span>تكلفة المواد</span><span class="num">${money(x.cost)} ر.ق</span></div>
+      <div><span>سعر البيع</span><span class="num">${money(s.price)} ر.ق</span></div>
+      <div class="grand" style="color:${x.profit>=0?'var(--sage)':'var(--clay)'}"><span>الربح الصافي من المواد</span><span class="num">${money(x.profit)} ر.ق</span></div>
+      <div><span>هامش الربح</span><span class="num">${x.pct.toFixed(0)}%</span></div>
+    </div>
+    <div style="background:var(--surface-2);padding:12px 14px;border-radius:var(--r-sm)">
+      <div style="font-size:12.5px;font-weight:600;margin-bottom:8px">حاسبة التسعير</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <span style="font-size:13px">الهامش المستهدف</span>
+        <input id="sTarget" type="number" min="1" max="95" value="70" style="width:80px;padding:8px;border:1px solid var(--line);border-radius:var(--r-sm)">
+        <span style="font-size:13px">%</span>
+        <button class="btn quiet sm" data-act="svc-suggest">اقترحي السعر</button>
+        <span id="sSuggest" style="font-size:13px;color:var(--muted)"></span></div></div>`,
+   `<button class="btn" data-act="svc-save" data-id="${s.id||''}">حفظ الخدمة</button>
+    ${s.id?`<span class="spacer"></span><button class="btn danger sm" data-act="svc-del" data-id="${s.id}">حذف</button>`:''}`,true);
 }
 function openUser(id){
   const u=id?byId(S.users,id):{name:'',username:'',role:'staff',title:'',color:'#6B2E5F'};
@@ -2064,6 +2147,49 @@ function openClient(id){
     ${isOwner()?`<span class="spacer"></span><button class="btn danger sm" data-act="cl-del" data-id="${c.id}">حذف الزبونة</button>`:''}`,true);
 }
 
+/* ---- bulk import of inventory items ---- */
+const IMPORT_SEED = `جل بوليش KOA (ألوان) | أظافر | عبوة | 74 | 50 | 15
+مناكير عادي KOA — حجم صغير (ألوان) | أظافر | عبوة | 33 | 24 | 15
+مناكير عادي KOA — حجم كبير (ألوان) | أظافر | عبوة | 47 | 28 | 15
+كروم KOA | أظافر | عبوة | 12 | 55 | 15
+كروم فضي KOA | أظافر | عبوة | 1 | 75 | 15
+روبر بيس KOA | أظافر | عبوة | 7 | 60 | 15
+بيلدر جل KOA (علبة) | أظافر | علبة | 4 | 160 | 15
+بيلدر بالفرشاة KOA | أظافر | عبوة | 3 | 120 | 15
+بيس كوت KOA | أظافر | عبوة | 4 | 65 | 15
+توب كوت KOA | أظافر | عبوة | 4 | 65 | 15
+ديهايدريتور KOA | أظافر | عبوة | 4 | 65 | 15
+برايمر KOA | أظافر | عبوة | 4 | 65 | 15
+هاردنر KOA | أظافر | عبوة | 2 | 60 | 15
+زيت كيوتيكل KOA | أظافر | عبوة | 1 | 80 | 15
+مزيل كيوتيكل — هدية المورّد | أظافر | عبوة | 2 | 150 | 15
+بافر — هدية المورّد | أظافر | رزمة | 3 | 150 | 15
+سيليكون باد KOA — هدية المورّد | أظافر | حبة | 2 | 100 | 15
+مبرد قدم وبديله — هدية المورّد | مستهلكات | رزمة | 10 | 80 | 15
+فرشاة أظافر (استخدام مرة) — هدية المورّد | مستهلكات | حبة | 10 | 35 | 1
+قصافة (استخدام مرة) — هدية المورّد | مستهلكات | حبة | 4 | 25 | 1
+ماسك وجه (استخدام مرة) — هدية المورّد | بشرة | كرتون | 1 | 160 | 15
+سكرب نعناع — هدية المورّد | جسم | كرتون | 1 | 180 | 15
+ملح بحري — هدية المورّد | جسم | كرتون | 2 | 120 | 15
+فرش KOA | معدات | حبة | 10 | 75 | 1
+أدوات ستوديو KOA | معدات | طقم | 5 | 170 | 1
+جهاز UV KOA | معدات | جهاز | 2 | 850 | 1
+مريول KOA — هدية المورّد | معدات | حبة | 2 | 200 | 1
+كتالوج ألوان KOA — هدية المورّد | معدات | حبة | 1 | 300 | 1`;
+function openImport(){
+  modal('استيراد أصناف إلى المخزون',
+   `<p style="margin:0 0 12px;color:var(--muted);font-size:13.5px">
+      كل سطر يمثّل صنفاً بالترتيب التالي، مفصولاً بعلامة (|):
+      <b style="color:var(--ink)">الاسم | الفئة | الوحدة | الكمية | سعر الشراء | عدد الاستخدامات للعبوة</b>.
+      القائمة أدناه مُعبّأة من فاتورة المورّد؛ عدّليها كما تشائين قبل الاستيراد.
+      الأصناف الموجودة مسبقاً بنفس الاسم لن تتكرر.</p>
+    <div class="field"><label>المورّد</label><input id="impSup" value="Reflect Trading"></div>
+    <textarea id="impText" dir="rtl" style="width:100%;height:260px;padding:10px;border:1px solid var(--line);
+      border-radius:var(--r-sm);font-size:13px;line-height:1.9">${esc(IMPORT_SEED)}</textarea>`,
+   `<button class="btn" data-act="imp-run">استيراد الأصناف</button>
+    <button class="btn quiet" data-act="close">إلغاء</button>`,true);
+}
+
 /* ========== 13. ACTIONS ========== */
 const FILT={bf:'bf',inf:'inf',af:'af',cf:'cf',tf:'tf'};
 function setFilter(key,k,v,refocus){
@@ -2300,6 +2426,25 @@ document.addEventListener('click',async e=>{
       if(!confirm('حذف المهمة؟')) break;
       S.tasks=S.tasks.filter(x=>x.id!==id); await rm(id); close(); render(); toast('تم حذف المهمة'); break; }
 
+    /* service cost & recipe */
+    case 'sln-add': {
+      harvestS(); const it=byId(S.items,val('sItem')), u=Math.max(1,parseInt(val('sUses'),10)||1);
+      if(!it){ toast('اختاري صنفاً من المخزون'); break }
+      const ex=D.s.recipe.find(r=>r.itemId===it.id);
+      if(ex) ex.uses=(+ex.uses||1)+u; else D.s.recipe.push({itemId:it.id,uses:u});
+      renderService(); break; }
+    case 'sln-rm': harvestS(); D.s.recipe.splice(+el.dataset.i,1); renderService(); break;
+    case 'svc-suggest': {
+      harvestS();
+      const t=Math.min(95,Math.max(1,numv('sTarget')||70));
+      const c=serviceCost(D.s);
+      const price=c>0?Math.ceil((c/(1-t/100))/5)*5:0;
+      const out=document.getElementById('sSuggest');
+      if(!c) { if(out) out.textContent='أضيفي المواد أولاً لحساب التكلفة'; break }
+      const pe=document.getElementById('sPrice'); if(pe) pe.value=price;
+      if(out) out.textContent=`السعر المقترح ${money(price)} ر.ق (التكلفة ${money(c)})`;
+      break; }
+
     /* packages */
     case 'pkg-new': openPackage(null); break;
     case 'pkg-edit': openPackage(id); break;
@@ -2369,13 +2514,33 @@ document.addEventListener('click',async e=>{
       if(low.length) setTimeout(()=>toast('تنبيه: '+low.join('، ')+' وصلت إلى الحد الأدنى'),1500);
       break; }
 
+    case 'imp-open': openImport(); break;
+    case 'imp-run': {
+      const sup=val('impSup');
+      const raw=(document.getElementById('impText')||{}).value||'';
+      let added=0, skipped=0, bad=0;
+      for(const lineRaw of raw.split('\n')){
+        const line=lineRaw.trim(); if(!line) continue;
+        const p=line.split('|').map(x=>x.trim());
+        if(p.length<5||!p[0]){ bad++; continue }
+        if(S.items.some(i=>i.name===p[0])){ skipped++; continue }
+        const it={id:uid('i'),name:p[0],cat:p[1]||'عام',unit:p[2]||'حبة',
+          qty:parseFloat(p[3])||0,min:1,cost:parseFloat(p[4])||0,cost0:parseFloat(p[4])||0,
+          usesPerPack:parseInt(p[5],10)||15,costAt:today(),supplier:sup,url:'',loc:''};
+        S.items.push(it); await put('items',it); added++;
+      }
+      close(); render();
+      toast(`تم استيراد ${added} صنفاً` + (skipped?` · تُخطّي ${skipped} موجودة`:'') + (bad?` · ${bad} سطر غير صالح`:''));
+      break; }
+
     /* inventory */
     case 'item-new': openItem(null); break;
     case 'item-edit': openItem(id); break;
     case 'item-save': {
       const name=val('iName'); if(!name){ toast('أدخلي اسم الصنف'); break }
       const o={name,cat:val('iCat')||'عام',unit:val('iUnit')||'حبة',qty:numv('iQty'),min:numv('iMin'),
-        cost:numv('iCost'),cost0:numv('iCost0')||numv('iCost'),supplier:val('iSup'),url:val('iUrl'),loc:val('iLoc')};
+        cost:numv('iCost'),cost0:numv('iCost0')||numv('iCost'),usesPerPack:numv('iUses')||15,
+        supplier:val('iSup'),url:val('iUrl'),loc:val('iLoc')};
       let rec;
       if(id){ rec=byId(S.items,id);
         if(numv('iCost')!==rec.cost) o.costAt=today();
@@ -2444,8 +2609,9 @@ document.addEventListener('click',async e=>{
     case 'svc-new': openService(null); break;
     case 'svc-edit': openService(id); break;
     case 'svc-save': {
-      const name=val('sName'); if(!name){ toast('أدخلي اسم الخدمة'); break }
-      const o={name,cat:val('sCat')||'عام',price:numv('sPrice'),dur:numv('sDur')||30};
+      harvestS(); const sv=D.s;
+      if(!sv.name){ toast('أدخلي اسم الخدمة'); break }
+      const o={name:sv.name,cat:sv.cat||'عام',price:sv.price,dur:sv.dur||30,recipe:sv.recipe||[]};
       let rec;
       if(id){ rec=byId(S.services,id); Object.assign(rec,o) } else { rec=Object.assign({id:uid('s')},o); S.services.push(rec) }
       await put('services',rec); close(); render(); toast('تم حفظ الخدمة'); break; }
