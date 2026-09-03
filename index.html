@@ -997,7 +997,8 @@ function vInventory(){
   const f=D.inf=D.inf||{q:'',cat:''};
   const cats=[...new Set(S.items.map(i=>i.cat))];
   const list=S.items.filter(i=>(!f.cat||i.cat===f.cat)&&(!f.q||i.name.includes(f.q)));
-  const value=sum(S.items,i=>i.qty*i.cost);
+  const value=sum(S.items.filter(i=>!i.gift),i=>i.qty*i.cost);
+  const giftValue=sum(S.items.filter(i=>i.gift),i=>i.qty*i.cost);
   const low=lowStock();
   const moves=S.movements.slice().sort((a,b)=>b.at.localeCompare(a.at)).slice(0,25);
 
@@ -1027,7 +1028,8 @@ function vInventory(){
   +tabs
   +`<div class="grid g3" style="margin-bottom:16px">
       <div class="card stat"><div class="lbl">عدد الأصناف</div><div class="val">${S.items.length}</div></div>
-      <div class="card stat"><div class="lbl">قيمة المخزون</div><div class="val">${money(value)}<small>ر.ق</small></div></div>
+      <div class="card stat"><div class="lbl">قيمة المخزون (المشتريات)</div><div class="val">${money(value)}<small>ر.ق</small></div>
+        <div class="note">${giftValue>0?`+ ${money(giftValue)} ر.ق أصناف هدية خارج القيمة`:'لا توجد أصناف هدية'}</div></div>
       <div class="card stat"><div class="lbl">تحت الحد الأدنى</div><div class="val" style="color:${low.length?'var(--clay)':'inherit'}">${low.length}</div>
         <div class="note">${low.slice(0,3).map(i=>esc(i.name)).join('، ')||'—'}</div></div>
     </div>
@@ -1042,7 +1044,7 @@ function vInventory(){
         const ratio=Math.min(100,(i.qty/Math.max(1,i.min*2))*100);
         const cls=i.qty<=0?'out':(i.qty<=i.min?'low':'');
         const chip=i.qty<=0?'<span class="chip clay">خلص</span>':(i.qty<=i.min?'<span class="chip gold">تحت الحد</span>':'<span class="chip sage">متوفر</span>');
-        return `<tr><td><b>${esc(i.name)}</b><div class="bar"><i class="${cls}" style="width:${ratio}%"></i></div></td>
+        return `<tr><td><b>${esc(i.name)}</b>${i.gift?' <span class="chip gold" style="font-size:10.5px">هدية</span>':''}<div class="bar"><i class="${cls}" style="width:${ratio}%"></i></div></td>
         <td>${esc(i.cat)}</td><td class="num"><b>${i.qty}</b> ${esc(i.unit)}</td><td class="num">${i.min}</td>
         <td>${chip}</td>
         <td class="num" style="color:var(--muted)">${money(i.cost0!=null?i.cost0:i.cost)}</td>
@@ -1464,6 +1466,10 @@ function openItem(id){
         <div style="font-size:11.5px;color:var(--muted);margin-top:5px">الافتراضي 15 استخداماً لكل عبوة</div></div>
       <div class="field"><label>تكلفة الاستخدام الواحد</label>
         <input value="${money(costPerUse(i))} ر.ق" disabled></div></div>
+    <label style="display:flex;gap:10px;align-items:flex-start;padding:4px 0 14px;cursor:pointer">
+      <input type="checkbox" id="iGift" ${i.gift?'checked':''} style="margin-top:3px;width:17px;height:17px">
+      <span><b>هدية من المورّد</b>
+        <br><span style="font-size:12px;color:var(--muted)">يُحتسب سعرها ضمن تكلفة الخدمة، ولا تدخل في قيمة المخزون ولا في المصروفات.</span></span></label>
     <div class="row-2">
       <div class="field"><label>رابط الموقع الإلكتروني</label><input id="iUrl" dir="ltr" value="${esc(i.url||'')}" placeholder="https://..."></div>
       <div class="field"><label>الموقع الجغرافي (رابط خرائط أو عنوان)</label><input id="iLoc" dir="ltr" value="${esc(i.loc||'')}" placeholder="https://maps.app.goo.gl/..."></div></div>`,
@@ -1485,7 +1491,9 @@ function openMove(type,itemId,bookingId){
           <input id="mUnit" type="number" step="1" data-act="mv-calc" value="${first?first.cost:0}">
           <div id="mHint" style="font-size:11.5px;color:var(--muted);margin-top:5px">
             السعر المسجّل سابقاً: ${first?money(first.cost):'0.00'} ر.ق للوحدة</div></div>
-        <div class="field"><label>تسجيلها كمصروف</label><select id="mExp"><option value="1">نعم</option><option value="0">لا</option></select>
+        <div class="field"><label>نوع الاستلام</label><select id="mExp">
+            <option value="1">شراء — يُسجَّل كمصروف</option>
+            <option value="0">هدية — لا تُسجَّل كمصروف</option></select>
           <div id="mTotal" style="font-size:12.5px;color:var(--ink);margin-top:5px;font-weight:600">
             الإجمالي: ${first?money(first.cost):'0.00'} ر.ق</div></div></div>`}
     <div class="field"><label>ملاحظة</label><input id="mNote" placeholder="اختياري"></div>`,
@@ -2266,89 +2274,96 @@ const IMPORT_SEED = `جل بوليش KOA — 810 | جل بوليش KOA | حبة 
 فرش KOA | معدات | حبة | 10 | 75 | 1
 جهاز UV KOA | معدات | حبة | 2 | 850 | 1
 هاردنر KOA | أساسات الأظافر KOA | حبة | 2 | 60 | 15
-مناكير عادي KOA — 1 | مناكير عادي KOA | حبة | 2 | 24 | 15
-مناكير عادي KOA — 801 | مناكير عادي KOA | حبة | 1 | 24 | 15
-مناكير عادي KOA — 150 | مناكير عادي KOA | حبة | 1 | 24 | 15
-مناكير عادي KOA — 660 | مناكير عادي KOA | حبة | 1 | 28 | 15
-مناكير عادي KOA — 1001 | مناكير عادي KOA | حبة | 1 | 24 | 15
-مناكير عادي KOA — 899 | مناكير عادي KOA | حبة | 1 | 24 | 15
-مناكير عادي KOA — 95 | مناكير عادي KOA | حبة | 1 | 28 | 15
-مناكير عادي KOA — 21 | مناكير عادي KOA | حبة | 1 | 28 | 15
-مناكير عادي KOA — 601 | مناكير عادي KOA | حبة | 1 | 28 | 15
-مناكير عادي KOA — 25 | مناكير عادي KOA | حبة | 1 | 28 | 15
-مناكير عادي KOA — 85 | مناكير عادي KOA | حبة | 1 | 28 | 15
-مناكير عادي KOA — 714 | مناكير عادي KOA | حبة | 1 | 24 | 15
-مناكير عادي KOA — 708 | مناكير عادي KOA | حبة | 2 | 28 | 15
-مناكير عادي KOA — 310 | مناكير عادي KOA | حبة | 1 | 28 | 15
-مناكير عادي KOA — 577 | مناكير عادي KOA | حبة | 1 | 24 | 15
-مناكير عادي KOA — 777 | مناكير عادي KOA | حبة | 1 | 24 | 15
-مناكير عادي KOA — 33 | مناكير عادي KOA | حبة | 3 | 24 | 15
-مناكير عادي KOA — 80 | مناكير عادي KOA | حبة | 2 | 28 | 15
-مناكير عادي KOA — 29 | مناكير عادي KOA | حبة | 2 | 28 | 15
-مناكير عادي KOA — 701 | مناكير عادي KOA | حبة | 1 | 24 | 15
-مناكير عادي KOA — 110 | مناكير عادي KOA | حبة | 1 | 28 | 15
-مناكير عادي KOA — 450 | مناكير عادي KOA | حبة | 1 | 28 | 15
-مناكير عادي KOA — 7 | مناكير عادي KOA | حبة | 1 | 24 | 15
-مناكير عادي KOA — 507 | مناكير عادي KOA | حبة | 1 | 24 | 15
-مناكير عادي KOA — 500 | مناكير عادي KOA | حبة | 1 | 28 | 15
-مناكير عادي KOA — 805 | مناكير عادي KOA | حبة | 1 | 28 | 15
-مناكير عادي KOA — 282 | مناكير عادي KOA | حبة | 2 | 24 | 15
-مناكير عادي KOA — 39 | مناكير عادي KOA | حبة | 1 | 24 | 15
-مناكير عادي KOA — 204 | مناكير عادي KOA | حبة | 1 | 24 | 15
-مناكير عادي KOA — 303 | مناكير عادي KOA | حبة | 1 | 24 | 15
-مناكير عادي KOA — 90 | مناكير عادي KOA | حبة | 1 | 24 | 15
-مناكير عادي KOA — 11 | مناكير عادي KOA | حبة | 1 | 28 | 15
-مناكير عادي KOA — 16 | مناكير عادي KOA | حبة | 2 | 28 | 15
-مناكير عادي KOA — 722 | مناكير عادي KOA | حبة | 1 | 28 | 15
-مناكير عادي KOA — 804 | مناكير عادي KOA | حبة | 1 | 28 | 15
-مناكير عادي KOA — 959 | مناكير عادي KOA | حبة | 1 | 28 | 15
-مناكير عادي KOA — 10 | مناكير عادي KOA | حبة | 1 | 28 | 15
-مناكير عادي KOA — 200 | مناكير عادي KOA | حبة | 1 | 24 | 15
-مناكير عادي KOA — 545 | مناكير عادي KOA | حبة | 1 | 24 | 15
-مناكير عادي KOA — 288 | مناكير عادي KOA | حبة | 1 | 24 | 15
-مناكير عادي KOA — 21 | مناكير عادي KOA | حبة | 1 | 24 | 15
-مناكير عادي KOA — 5 | مناكير عادي KOA | حبة | 1 | 24 | 15
-مناكير عادي KOA — 20 | مناكير عادي KOA | حبة | 1 | 24 | 15
-مناكير عادي KOA — 138 | مناكير عادي KOA | حبة | 2 | 28 | 15
-مناكير عادي KOA — 979 | مناكير عادي KOA | حبة | 2 | 28 | 15
-مناكير عادي KOA — 43 | مناكير عادي KOA | حبة | 2 | 28 | 15
-مناكير عادي KOA — 55 | مناكير عادي KOA | حبة | 2 | 28 | 15
-مناكير عادي KOA — 48 | مناكير عادي KOA | حبة | 2 | 28 | 15
-مناكير عادي KOA — 22 | مناكير عادي KOA | حبة | 2 | 28 | 15
-مناكير عادي KOA — 125 | مناكير عادي KOA | حبة | 2 | 28 | 15
-مناكير عادي KOA — 622 | مناكير عادي KOA | حبة | 2 | 28 | 15
-مناكير عادي KOA — 410 | مناكير عادي KOA | حبة | 2 | 28 | 15
-مناكير عادي KOA — 440 | مناكير عادي KOA | حبة | 1 | 28 | 15
-مناكير عادي KOA — 38 | مناكير عادي KOA | حبة | 1 | 28 | 15
-مناكير عادي KOA — 58 | مناكير عادي KOA | حبة | 1 | 24 | 15
-مناكير عادي KOA — 802 | مناكير عادي KOA | حبة | 1 | 24 | 15
-مناكير عادي KOA — 779 | مناكير عادي KOA | حبة | 1 | 28 | 15
-مناكير عادي KOA — 575 | مناكير عادي KOA | حبة | 1 | 28 | 15
-مناكير عادي KOA — 252 | مناكير عادي KOA | حبة | 1 | 24 | 15
-مناكير عادي KOA — 56 | مناكير عادي KOA | حبة | 1 | 28 | 15
-مناكير عادي KOA — 424 | مناكير عادي KOA | حبة | 1 | 24 | 15
-مناكير عادي KOA — 99 | مناكير عادي KOA | حبة | 2 | 24 | 15
+مناكير عادي KOA — 1 (صغير) | مناكير عادي KOA | حبة | 2 | 24 | 15
+مناكير عادي KOA — 801 (صغير) | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 150 (صغير) | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 660 (كبير) | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 1001 (صغير) | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 899 (صغير) | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 95 (كبير) | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 21 (كبير) | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 601 (كبير) | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 25 (كبير) | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 85 (كبير) | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 714 (صغير) | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 708 (كبير) | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 310 (كبير) | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 577 (صغير) | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 777 (صغير) | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 33 (صغير) | مناكير عادي KOA | حبة | 3 | 24 | 15
+مناكير عادي KOA — 80 (كبير) | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 29 (كبير) | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 701 (صغير) | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 110 (كبير) | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 450 (كبير) | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 7 (صغير) | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 507 (صغير) | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 500 (كبير) | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 805 (كبير) | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 282 (صغير) | مناكير عادي KOA | حبة | 2 | 24 | 15
+مناكير عادي KOA — 39 (صغير) | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 204 (صغير) | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 303 (صغير) | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 90 (صغير) | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 11 (كبير) | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 16 (كبير) | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 722 (كبير) | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 804 (كبير) | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 959 (كبير) | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 10 (كبير) | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 200 (صغير) | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 545 (صغير) | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 288 (صغير) | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 21 (صغير) | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 5 (صغير) | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 20 (صغير) | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 138 (كبير) | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 979 (كبير) | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 43 (كبير) | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 55 (كبير) | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 48 (كبير) | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 22 (كبير) | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 125 (كبير) | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 622 (كبير) | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 410 (كبير) | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 440 (كبير) | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 38 (كبير) | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 58 (صغير) | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 802 (صغير) | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 779 (كبير) | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 575 (كبير) | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 252 (صغير) | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 56 (كبير) | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 424 (صغير) | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 99 (صغير) | مناكير عادي KOA | حبة | 2 | 24 | 15
 أدوات ستوديو KOA | معدات | حبة | 5 | 170 | 1
-ماسك وجه (استخدام مرة) — هدية | مستهلكات | كرتون | 1 | 160 | 1
-سكرب نعناع — هدية | مستهلكات | كرتون | 1 | 180 | 15
-ملح بحري — هدية | مستهلكات | كرتون | 2 | 120 | 15
-فرشاة أظافر (استخدام مرة) — هدية | مستهلكات | حبة | 10 | 35 | 1
-مزيل كيوتيكل — هدية | عناية الأظافر | حبة | 2 | 150 | 15
-مبرد قدم — هدية | مستهلكات | رزمة | 5 | 80 | 15
-بديل مبرد قدم — هدية | مستهلكات | رزمة | 5 | 80 | 15
-سيليكون باد KOA — هدية | مستهلكات | حبة | 2 | 100 | 15
-مريول KOA — هدية | معدات | حبة | 2 | 200 | 1
-قصافة (استخدام مرة) — هدية | مستهلكات | حبة | 4 | 25 | 1
-كتالوج ألوان KOA — هدية | معدات | حبة | 1 | 300 | 1
-بافر — هدية | مستهلكات | رزمة | 3 | 150 | 15`;
+ماسك وجه (استخدام مرة) | مستهلكات | كرتون | 1 | 160 | 15 | هدية
+سكرب نعناع | مستهلكات | كرتون | 1 | 180 | 15 | هدية
+ملح بحري | مستهلكات | كرتون | 2 | 120 | 15 | هدية
+فرشاة أظافر (استخدام مرة) | مستهلكات | حبة | 10 | 35 | 15 | هدية
+مزيل كيوتيكل | عناية الأظافر | حبة | 2 | 150 | 15 | هدية
+مبرد قدم | مستهلكات | رزمة | 5 | 80 | 15 | هدية
+بديل مبرد قدم | مستهلكات | رزمة | 5 | 80 | 15 | هدية
+سيليكون باد KOA | مستهلكات | حبة | 2 | 100 | 15 | هدية
+مريول KOA | معدات | حبة | 2 | 200 | 1 | هدية
+قصافة (استخدام مرة) | مستهلكات | حبة | 4 | 25 | 15 | هدية
+كتالوج ألوان KOA | معدات | حبة | 1 | 300 | 1 | هدية
+بافر | مستهلكات | رزمة | 3 | 150 | 15 | هدية`;
 function openImport(){
   modal('استيراد أصناف إلى المخزون',
    `<p style="margin:0 0 12px;color:var(--muted);font-size:13.5px">
       كل سطر يمثّل صنفاً بالترتيب التالي، مفصولاً بعلامة (|):
-      <b style="color:var(--ink)">الاسم | الفئة | الوحدة | الكمية | سعر الشراء | عدد الاستخدامات للعبوة</b>.
+      <b style="color:var(--ink)">الاسم | الفئة | الوحدة | الكمية | السعر | عدد الاستخدامات | هدية (اختياري)</b>.
+      اكتبي كلمة «هدية» في الخانة الأخيرة للأصناف الممنوحة من المورّد: يُحتسب سعرها في تكلفة الخدمة،
+      ولا تدخل في قيمة المخزون ولا في المصروفات.
       القائمة أدناه مُعبّأة من فاتورة المورّد؛ عدّليها كما تشائين قبل الاستيراد.
       الأصناف الموجودة مسبقاً بنفس الاسم لن تتكرر.</p>
     <div class="field"><label>المورّد</label><input id="impSup" value="Reflect Trading"></div>
+    <label style="display:flex;gap:10px;align-items:flex-start;padding:6px 0 12px;cursor:pointer">
+      <input type="checkbox" id="impWipe" style="margin-top:3px;width:17px;height:17px">
+      <span><b>حذف كل أصناف المخزون الحالية قبل الاستيراد</b>
+        <br><span style="font-size:12px;color:var(--clay)">استخدميه إذا كانت القائمة الحالية خاطئة وتريدين استبدالها بالكامل.
+        سيُحذف كل صنف موجود الآن، ولن تتأثر الحجوزات ولا الفواتير.</span></span></label>
     <textarea id="impText" dir="rtl" style="width:100%;height:260px;padding:10px;border:1px solid var(--line);
       border-radius:var(--r-sm);font-size:13px;line-height:1.9">${esc(IMPORT_SEED)}</textarea>`,
    `<button class="btn" data-act="imp-run">استيراد الأصناف</button>
@@ -2733,19 +2748,27 @@ document.addEventListener('click',async e=>{
     case 'imp-run': {
       const sup=val('impSup');
       const raw=(document.getElementById('impText')||{}).value||'';
-      let added=0, skipped=0, bad=0;
+      let added=0, skipped=0, bad=0, wiped=0;
+      const wipeFirst=(document.getElementById('impWipe')||{}).checked;
+      if(wipeFirst){
+        if(!confirm('سيتم حذف كل أصناف المخزون الحالية نهائياً قبل الاستيراد. متابعة؟')) break;
+        for(const x of S.items.slice()){ await rm(x.id); wiped++ }
+        S.items=[];
+      }
       for(const lineRaw of raw.split('\n')){
         const line=lineRaw.trim(); if(!line) continue;
         const p=line.split('|').map(x=>x.trim());
         if(p.length<5||!p[0]){ bad++; continue }
         if(S.items.some(i=>i.name===p[0])){ skipped++; continue }
+        const isGift=(p[6]||'').indexOf('هدية')===0;
         const it={id:uid('i'),name:p[0],cat:p[1]||'عام',unit:p[2]||'حبة',
-          qty:parseFloat(p[3])||0,min:1,cost:parseFloat(p[4])||0,cost0:parseFloat(p[4])||0,
-          usesPerPack:parseInt(p[5],10)||15,costAt:today(),supplier:sup,url:'',loc:''};
+          qty:parseFloat(p[3])||0,min:(parseFloat(p[3])||0)>=5?1:0,cost:parseFloat(p[4])||0,cost0:parseFloat(p[4])||0,
+          usesPerPack:parseInt(p[5],10)||15,gift:isGift,costAt:today(),supplier:sup,url:'',loc:''};
         S.items.push(it); await put('items',it); added++;
       }
       close(); render();
-      toast(`تم استيراد ${added} صنفاً` + (skipped?` · تُخطّي ${skipped} موجودة`:'') + (bad?` · ${bad} سطر غير صالح`:''));
+      try{ if(typeof save==='function') save() }catch(e){}
+      toast((wiped?`حُذف ${wiped} صنفاً قديماً · `:'') + `تم استيراد ${added} صنفاً` + (skipped?` · تُخطّي ${skipped} موجودة`:'') + (bad?` · ${bad} سطر غير صالح`:''));
       break; }
 
     case 'clean-open': openCleanup(); break;
@@ -2784,6 +2807,7 @@ document.addEventListener('click',async e=>{
       const name=val('iName'); if(!name){ toast('أدخلي اسم الصنف'); break }
       const o={name,cat:val('iCat')||'عام',unit:val('iUnit')||'حبة',qty:numv('iQty'),min:numv('iMin'),
         cost:numv('iCost'),cost0:numv('iCost0')||numv('iCost'),usesPerPack:numv('iUses')||15,
+        gift:!!(document.getElementById('iGift')||{}).checked,
         supplier:val('iSup'),url:val('iUrl'),loc:val('iLoc')};
       let rec;
       if(id){ rec=byId(S.items,id);
@@ -2807,7 +2831,10 @@ document.addEventListener('click',async e=>{
         bookingId:type==='out'?val('mBk'):'',note:val('mNote')};
       S.movements.push(mv);
       await put('items',it); await put('movements',mv);
-      if(type==='in'){ const unit=numv('mUnit'); const c=unit*q;
+      if(type==='in'){
+        const unit=numv('mUnit'); const c=unit*q;
+        const asGift=val('mExp')==='0';
+        if(it.gift!==asGift){ it.gift=asGift; await put('items',it) }
         if(unit>0&&unit!==it.cost){
           if(it.cost0==null) it.cost0=it.cost;
           it.cost=unit; it.costAt=val('mDate')||today(); await put('items',it); }
