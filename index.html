@@ -1274,7 +1274,8 @@ function vServices(){
 /* ========== 11. TEAM ========== */
 function vTeam(){
   return head('فريق العمل','صلاحيات الدخول لكل عضوة في الفريق',
-    `<button class="btn" data-act="usr-new">+ عضوة جديدة</button>`)
+    `<button class="btn quiet" data-act="clean-open">تنظيف البيانات التجريبية</button>
+     <button class="btn" data-act="usr-new">+ عضوة جديدة</button>`)
   +`<div class="card"><div class="tbl-wrap"><table>
     <thead><tr><th>الاسم</th><th>اسم المستخدم</th><th>الصفة</th><th>الصلاحية</th><th>حجوزات الشهر</th><th></th></tr></thead>
     <tbody>${S.users.map(u=>{const c=S.bookings.filter(b=>b.staffId===u.id&&monthOf(b.date)===monthOf(today())).length;
@@ -1520,8 +1521,21 @@ function openExpense(id){
 const USES_DEFAULT=15;
 const usesOf=i=>Math.max(1,+((i&&i.usesPerPack)||USES_DEFAULT));
 const costPerUse=i=>i?(+i.cost||0)/usesOf(i):0;
+function catAvgCost(cat){
+  const list=S.items.filter(i=>i.cat===cat);
+  if(!list.length) return 0;
+  return sum(list,i=>costPerUse(i))/list.length;
+}
+function recipeUnit(r){
+  if(r.grp) return catAvgCost(r.grp);
+  const it=byId(S.items,r.itemId); return it?costPerUse(it):0;
+}
+function recipeLabel(r){
+  if(r.grp) return 'أي صنف من: '+r.grp;
+  const it=byId(S.items,r.itemId); return it?it.name:'صنف محذوف';
+}
 function serviceCost(s){
-  return sum((s&&s.recipe)||[],r=>{ const it=byId(S.items,r.itemId); return it?costPerUse(it)*Math.max(1,+r.uses||1):0 });
+  return sum((s&&s.recipe)||[],r=>recipeUnit(r)*Math.max(1,+r.uses||1));
 }
 function serviceProfit(s){
   const c=serviceCost(s), p=+((s&&s.price))||0;
@@ -1545,10 +1559,9 @@ function openService(id){
 function renderService(){
   const s=D.s, x=serviceProfit(s);
   const lines=s.recipe.length?s.recipe.map((r,i)=>{
-    const it=byId(S.items,r.itemId);
-    return `<div class="line"><span class="nm">${esc(it?it.name:'صنف محذوف')}</span>
-      <span style="color:var(--muted);font-size:12.5px">${r.uses>1?'×'+r.uses:''} · ${money(costPerUse(it))} للاستخدام</span>
-      <span class="pr">${money(costPerUse(it)*Math.max(1,+r.uses||1))}</span>
+    return `<div class="line"><span class="nm">${esc(recipeLabel(r))}</span>
+      <span style="color:var(--muted);font-size:12.5px">${r.uses>1?'×'+r.uses:''} · ${money(recipeUnit(r))} للاستخدام</span>
+      <span class="pr">${money(recipeUnit(r)*Math.max(1,+r.uses||1))}</span>
       <button class="rm" data-act="sln-rm" data-i="${i}">×</button></div>`}).join('')
     :`<div class="line-empty">أضيفي المواد المستخدمة في هذه الخدمة لحساب تكلفتها</div>`;
   modal(s.id?'تعديل خدمة':'خدمة جديدة',
@@ -1561,11 +1574,17 @@ function renderService(){
       <div class="line-list">${lines}</div>
       <div style="display:flex;gap:8px">
         <select id="sItem" style="flex:1;padding:9px 11px;border:1px solid var(--line);border-radius:var(--r-sm)">
-          ${S.items.map(i=>`<option value="${i.id}">${esc(i.name)} — ${money(costPerUse(i))} ر.ق للاستخدام</option>`).join('')}</select>
+          <optgroup label="مجموعات (متوسط سعر المجموعة)">
+            ${[...new Set(S.items.map(i=>i.cat))].map(ct=>`<option value="g:${esc(ct)}">أي صنف من: ${esc(ct)} — ${money(catAvgCost(ct))} ر.ق</option>`).join('')}
+          </optgroup>
+          <optgroup label="صنف محدد">
+            ${S.items.map(i=>`<option value="${i.id}">${esc(i.name)} — ${money(costPerUse(i))} ر.ق للاستخدام</option>`).join('')}
+          </optgroup></select>
         <input id="sUses" type="number" min="1" value="1" style="width:70px;padding:9px;border:1px solid var(--line);border-radius:var(--r-sm)">
         <button class="btn quiet" data-act="sln-add">إضافة</button></div>
       <div style="font-size:11.5px;color:var(--muted);margin-top:6px">
-        تُحسب تكلفة الاستخدام الواحد = سعر شراء العبوة ÷ عدد استخداماتها (${USES_DEFAULT} افتراضياً)، وتُعدَّل لكل صنف من صفحة المخزون.</div></div>
+        تُحسب تكلفة الاستخدام الواحد = سعر شراء العبوة ÷ عدد استخداماتها (${USES_DEFAULT} افتراضياً).
+        اختاري «مجموعة» عندما تختلف الألوان من زبونة لأخرى — يُحسب متوسط سعر المجموعة.</div></div>
     <div class="totals" style="margin-bottom:14px">
       <div><span>تكلفة المواد</span><span class="num">${money(x.cost)} ر.ق</span></div>
       <div><span>سعر البيع</span><span class="num">${money(s.price)} ر.ق</span></div>
@@ -1709,11 +1728,13 @@ function openConsume(bid){
   D.finishId=bid;
   const b=byId(S.bookings,bid);
   const cats=[...new Set(S.items.map(i=>i.cat))];
-  const body=`<p style="margin:0 0 14px;color:var(--muted);font-size:13.5px">
+  const body=`<input id="consFind" placeholder="ابحثي عن صنف أو لون…" style="width:100%;padding:10px 12px;
+      border:1px solid var(--line);border-radius:var(--r-sm);margin-bottom:12px">
+    <p style="margin:0 0 14px;color:var(--muted);font-size:13.5px">
       المواد المستخدمة مع <b style="color:var(--ink)">${esc(b.client)}</b>، أدخلي الكمية أمام كل صنف، واتركي غير المستخدم على صفر.
       تُخصم الكميات من المخزون مباشرة.</p>`
-    +(S.items.length?cats.map(c=>`<div class="cons-cat">${esc(c)}</div>`+
-        S.items.filter(i=>i.cat===c).map(i=>`<div class="cons-row">
+    +(S.items.length?cats.map(c=>`<div class="cons-cat" data-cat="${esc(c)}">${esc(c)}</div>`+
+        S.items.filter(i=>i.cat===c).map(i=>`<div class="cons-row" data-name="${esc(i.name)}">
           <span class="nm">${esc(i.name)}<em>متوفر ${i.qty} ${esc(i.unit)}</em></span>
           <input id="c_${i.id}" class="cons-q" type="number" min="0" step="1" value="0"></div>`).join('')).join('')
       :'<div class="empty">لا توجد أصناف في المخزون</div>');
@@ -2148,34 +2169,178 @@ function openClient(id){
 }
 
 /* ---- bulk import of inventory items ---- */
-const IMPORT_SEED = `جل بوليش KOA (ألوان) | أظافر | عبوة | 74 | 50 | 15
-مناكير عادي KOA — حجم صغير (ألوان) | أظافر | عبوة | 33 | 24 | 15
-مناكير عادي KOA — حجم كبير (ألوان) | أظافر | عبوة | 47 | 28 | 15
-كروم KOA | أظافر | عبوة | 12 | 55 | 15
-كروم فضي KOA | أظافر | عبوة | 1 | 75 | 15
-روبر بيس KOA | أظافر | عبوة | 7 | 60 | 15
-بيلدر جل KOA (علبة) | أظافر | علبة | 4 | 160 | 15
-بيلدر بالفرشاة KOA | أظافر | عبوة | 3 | 120 | 15
-بيس كوت KOA | أظافر | عبوة | 4 | 65 | 15
-توب كوت KOA | أظافر | عبوة | 4 | 65 | 15
-ديهايدريتور KOA | أظافر | عبوة | 4 | 65 | 15
-برايمر KOA | أظافر | عبوة | 4 | 65 | 15
-هاردنر KOA | أظافر | عبوة | 2 | 60 | 15
-زيت كيوتيكل KOA | أظافر | عبوة | 1 | 80 | 15
-مزيل كيوتيكل — هدية المورّد | أظافر | عبوة | 2 | 150 | 15
-بافر — هدية المورّد | أظافر | رزمة | 3 | 150 | 15
-سيليكون باد KOA — هدية المورّد | أظافر | حبة | 2 | 100 | 15
-مبرد قدم وبديله — هدية المورّد | مستهلكات | رزمة | 10 | 80 | 15
-فرشاة أظافر (استخدام مرة) — هدية المورّد | مستهلكات | حبة | 10 | 35 | 1
-قصافة (استخدام مرة) — هدية المورّد | مستهلكات | حبة | 4 | 25 | 1
-ماسك وجه (استخدام مرة) — هدية المورّد | بشرة | كرتون | 1 | 160 | 15
-سكرب نعناع — هدية المورّد | جسم | كرتون | 1 | 180 | 15
-ملح بحري — هدية المورّد | جسم | كرتون | 2 | 120 | 15
+const IMPORT_SEED = `جل بوليش KOA — 810 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 50 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 17 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 700 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 38 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 7 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 805 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 678 | جل بوليش KOA | حبة | 2 | 50 | 15
+جل بوليش KOA — 140 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 500 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 922 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 991 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 504 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 207 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 1077 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 1188 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 911 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 1525 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 1202 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 1115 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 1222 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 1027 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 1015 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 1999 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 1006 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 1777 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 1018 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 377 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 599 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 625 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 1003 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 464 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 1 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 80 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 29 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 110 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 11 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 16 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 722 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 959 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 70 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 399 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 440 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 708 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 410 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 622 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 22 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 979 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 48 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 803 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 200 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 545 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 32 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 206 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 33 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 424 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 626 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 310 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 779 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 499 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 320 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 135 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 1600 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 567 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 765 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 575 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 901 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 107 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 101 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 82 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 30 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 27 | جل بوليش KOA | حبة | 1 | 50 | 15
+جل بوليش KOA — 15 | جل بوليش KOA | حبة | 1 | 50 | 15
+كروم KOA — طقم ألوان | كروم KOA | حبة | 12 | 55 | 15
+كروم KOA — فضي | كروم KOA | حبة | 1 | 75 | 15
+روبر بيس KOA — clear | روبر بيس KOA | حبة | 1 | 60 | 15
+روبر بيس KOA — 111 | روبر بيس KOA | حبة | 1 | 60 | 15
+روبر بيس KOA — 588 | روبر بيس KOA | حبة | 1 | 60 | 15
+روبر بيس KOA — 305 | روبر بيس KOA | حبة | 1 | 60 | 15
+روبر بيس KOA — 333 | روبر بيس KOA | حبة | 1 | 60 | 15
+روبر بيس KOA — 833 | روبر بيس KOA | حبة | 1 | 60 | 15
+روبر بيس KOA — 88 | روبر بيس KOA | حبة | 1 | 60 | 15
+بيلدر جل KOA — Clear | بيلدر جل KOA | حبة | 1 | 160 | 15
+بيلدر جل KOA — 111 | بيلدر جل KOA | حبة | 1 | 160 | 15
+بيلدر جل KOA — 55 | بيلدر جل KOA | حبة | 1 | 160 | 15
+بيلدر جل KOA — 69 | بيلدر جل KOA | حبة | 1 | 160 | 15
+بيس كوت KOA | أساسات الأظافر KOA | حبة | 4 | 65 | 15
+توب كوت KOA | أساسات الأظافر KOA | حبة | 4 | 65 | 15
+ديهايدريتور KOA | أساسات الأظافر KOA | حبة | 4 | 65 | 15
+برايمر KOA | أساسات الأظافر KOA | حبة | 4 | 65 | 15
+زيت كيوتيكل KOA | عناية الأظافر | حبة | 1 | 80 | 15
+بيلدر بالفرشاة KOA — clear | بيلدر بالفرشاة KOA | حبة | 1 | 120 | 15
+بيلدر بالفرشاة KOA — milkky | بيلدر بالفرشاة KOA | حبة | 1 | 120 | 15
+بيلدر بالفرشاة KOA — 57 | بيلدر بالفرشاة KOA | حبة | 1 | 120 | 15
 فرش KOA | معدات | حبة | 10 | 75 | 1
-أدوات ستوديو KOA | معدات | طقم | 5 | 170 | 1
-جهاز UV KOA | معدات | جهاز | 2 | 850 | 1
-مريول KOA — هدية المورّد | معدات | حبة | 2 | 200 | 1
-كتالوج ألوان KOA — هدية المورّد | معدات | حبة | 1 | 300 | 1`;
+جهاز UV KOA | معدات | حبة | 2 | 850 | 1
+هاردنر KOA | أساسات الأظافر KOA | حبة | 2 | 60 | 15
+مناكير عادي KOA — 1 | مناكير عادي KOA | حبة | 2 | 24 | 15
+مناكير عادي KOA — 801 | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 150 | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 660 | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 1001 | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 899 | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 95 | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 21 | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 601 | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 25 | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 85 | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 714 | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 708 | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 310 | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 577 | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 777 | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 33 | مناكير عادي KOA | حبة | 3 | 24 | 15
+مناكير عادي KOA — 80 | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 29 | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 701 | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 110 | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 450 | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 7 | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 507 | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 500 | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 805 | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 282 | مناكير عادي KOA | حبة | 2 | 24 | 15
+مناكير عادي KOA — 39 | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 204 | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 303 | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 90 | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 11 | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 16 | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 722 | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 804 | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 959 | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 10 | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 200 | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 545 | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 288 | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 21 | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 5 | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 20 | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 138 | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 979 | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 43 | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 55 | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 48 | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 22 | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 125 | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 622 | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 410 | مناكير عادي KOA | حبة | 2 | 28 | 15
+مناكير عادي KOA — 440 | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 38 | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 58 | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 802 | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 779 | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 575 | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 252 | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 56 | مناكير عادي KOA | حبة | 1 | 28 | 15
+مناكير عادي KOA — 424 | مناكير عادي KOA | حبة | 1 | 24 | 15
+مناكير عادي KOA — 99 | مناكير عادي KOA | حبة | 2 | 24 | 15
+أدوات ستوديو KOA | معدات | حبة | 5 | 170 | 1
+ماسك وجه (استخدام مرة) — هدية | مستهلكات | كرتون | 1 | 160 | 1
+سكرب نعناع — هدية | مستهلكات | كرتون | 1 | 180 | 15
+ملح بحري — هدية | مستهلكات | كرتون | 2 | 120 | 15
+فرشاة أظافر (استخدام مرة) — هدية | مستهلكات | حبة | 10 | 35 | 1
+مزيل كيوتيكل — هدية | عناية الأظافر | حبة | 2 | 150 | 15
+مبرد قدم — هدية | مستهلكات | رزمة | 5 | 80 | 15
+بديل مبرد قدم — هدية | مستهلكات | رزمة | 5 | 80 | 15
+سيليكون باد KOA — هدية | مستهلكات | حبة | 2 | 100 | 15
+مريول KOA — هدية | معدات | حبة | 2 | 200 | 1
+قصافة (استخدام مرة) — هدية | مستهلكات | حبة | 4 | 25 | 1
+كتالوج ألوان KOA — هدية | معدات | حبة | 1 | 300 | 1
+بافر — هدية | مستهلكات | رزمة | 3 | 150 | 15`;
 function openImport(){
   modal('استيراد أصناف إلى المخزون',
    `<p style="margin:0 0 12px;color:var(--muted);font-size:13.5px">
@@ -2190,6 +2355,37 @@ function openImport(){
     <button class="btn quiet" data-act="close">إلغاء</button>`,true);
 }
 
+/* ---- cleanup of demo/seed data ---- */
+const isSeed=x=>/^[sibco]\d+$/.test(x.id||'');
+function seedSets(){
+  return {
+    svc:S.services.filter(isSeed), itm:S.items.filter(isSeed),
+    bk:S.bookings.filter(isSeed), cl:S.clients.filter(isSeed)
+  };
+}
+function openCleanup(){
+  const g=seedSets();
+  const row=(id,label,n,note)=>`<label style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px dashed var(--line);cursor:pointer">
+      <input type="checkbox" id="${id}" ${n?'checked':''} ${n?'':'disabled'} style="margin-top:4px;width:17px;height:17px">
+      <span><b>${label}</b> <span class="chip ${n?'clay':'grey'}">${n}</span>
+        <br><span style="font-size:12px;color:var(--muted)">${note}</span></span></label>`;
+  modal('تنظيف البيانات التجريبية',
+   `<p style="margin:0 0 14px;color:var(--muted);font-size:13.5px">
+      اختاري ما تريدين حذفه نهائياً. الأصناف والخدمات التي أضفتِها أو استوردتِها بنفسك <b style="color:var(--ink)">لن تُحذف</b>،
+      ولن تُمسّ المناسبات ولا حسابات فريق العمل.</p>
+    ${row('clSvc','خدمات تجريبية',g.svc.length,g.svc.map(x=>esc(x.name)).join('، ')||'—')}
+    ${row('clItm','أصناف مخزون تجريبية',g.itm.length,g.itm.map(x=>esc(x.name)).join('، ')||'—')}
+    ${row('clBk','حجوزات تجريبية',g.bk.length,g.bk.map(x=>esc(x.client)).join('، ')||'—')}
+    ${row('clCl','زبائن تجريبيون',g.cl.length,g.cl.map(x=>esc(x.name)).join('، ')||'—')}
+    <label style="display:flex;gap:10px;align-items:flex-start;padding:12px 0;cursor:pointer">
+      <input type="checkbox" id="clAll" style="margin-top:4px;width:17px;height:17px">
+      <span><b>مسح كل سجلات التجربة</b>
+        <br><span style="font-size:12px;color:var(--clay)">يحذف جميع الحجوزات والفواتير وحركات المخزون والمصروفات والباقات المباعة —
+        استخدميه فقط إذا كان كل ما سجّلتِه حتى الآن تجريبياً.</span></span></label>`,
+   `<button class="btn danger" data-act="clean-run">حذف المحدد نهائياً</button>
+    <button class="btn quiet" data-act="close">إلغاء</button>`,true);
+}
+
 /* ========== 13. ACTIONS ========== */
 const FILT={bf:'bf',inf:'inf',af:'af',cf:'cf',tf:'tf'};
 function setFilter(key,k,v,refocus){
@@ -2198,6 +2394,18 @@ function setFilter(key,k,v,refocus){
     if(el){ el.focus(); try{ el.setSelectionRange(el.value.length,el.value.length) }catch(e){} } }
 }
 document.addEventListener('input',e=>{
+  if(e.target && e.target.id==='consFind'){
+    const q=e.target.value.trim();
+    document.querySelectorAll('.cons-row').forEach(r=>{
+      r.style.display = (!q || (r.dataset.name||'').includes(q)) ? '' : 'none';
+    });
+    document.querySelectorAll('.cons-cat').forEach(h=>{
+      let n=h.nextElementSibling, any=false;
+      while(n && n.classList.contains('cons-row')){ if(n.style.display!=='none') any=true; n=n.nextElementSibling }
+      h.style.display = any ? '' : 'none';
+    });
+    return;
+  }
   const el=e.target.closest('[data-act]'); if(!el) return;
   const a=el.dataset.act;
   if(FILT[a]&&el.tagName==='INPUT'&&(!el.type||el.type==='text')) setFilter(a,el.dataset.k,el.value,true);
@@ -2428,7 +2636,14 @@ document.addEventListener('click',async e=>{
 
     /* service cost & recipe */
     case 'sln-add': {
-      harvestS(); const it=byId(S.items,val('sItem')), u=Math.max(1,parseInt(val('sUses'),10)||1);
+      harvestS(); const v=val('sItem'), u=Math.max(1,parseInt(val('sUses'),10)||1);
+      if(v.indexOf('g:')===0){
+        const g=v.slice(2);
+        const ex=D.s.recipe.find(r=>r.grp===g);
+        if(ex) ex.uses=(+ex.uses||1)+u; else D.s.recipe.push({grp:g,uses:u});
+        renderService(); break;
+      }
+      const it=byId(S.items,v);
       if(!it){ toast('اختاري صنفاً من المخزون'); break }
       const ex=D.s.recipe.find(r=>r.itemId===it.id);
       if(ex) ex.uses=(+ex.uses||1)+u; else D.s.recipe.push({itemId:it.id,uses:u});
@@ -2532,6 +2747,35 @@ document.addEventListener('click',async e=>{
       close(); render();
       toast(`تم استيراد ${added} صنفاً` + (skipped?` · تُخطّي ${skipped} موجودة`:'') + (bad?` · ${bad} سطر غير صالح`:''));
       break; }
+
+    case 'clean-open': openCleanup(); break;
+    case 'clean-run': {
+      const on=id2=>{const e=document.getElementById(id2); return !!(e&&e.checked)};
+      if(!confirm('سيتم الحذف نهائياً ولا يمكن التراجع. متابعة؟')) break;
+      const g=seedSets(); let count=0;
+      const wipe=async(arr,bucketName,list)=>{
+        for(const x of list){ await rm(x.id); count++ }
+        const ids=new Set(list.map(x=>x.id));
+        S[bucketName]=S[bucketName].filter(x=>!ids.has(x.id));
+      };
+      if(on('clSvc')) await wipe(0,'services',g.svc);
+      if(on('clItm')) await wipe(0,'items',g.itm);
+      if(on('clCl'))  await wipe(0,'clients',g.cl);
+      if(on('clAll')){
+        for(const b of ['bookings','invoices','movements','expenses','subs']){
+          for(const x of S[b]){ await rm(x.id); count++ }
+          S[b]=[];
+        }
+      } else if(on('clBk')){
+        const ids=new Set(g.bk.map(x=>x.id));
+        for(const v of S.invoices.filter(v=>ids.has(v.bookingId))){ await rm(v.id); count++ }
+        S.invoices=S.invoices.filter(v=>!ids.has(v.bookingId));
+        for(const m of S.movements.filter(m=>ids.has(m.bookingId))){ await rm(m.id); count++ }
+        S.movements=S.movements.filter(m=>!ids.has(m.bookingId));
+        await wipe(0,'bookings',g.bk);
+      }
+      try{ if(typeof save==='function') save() }catch(e){}
+      close(); render(); toast(`تم حذف ${count} سجلاً تجريبياً`); break; }
 
     /* inventory */
     case 'item-new': openItem(null); break;
