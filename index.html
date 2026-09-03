@@ -1517,6 +1517,11 @@ function openExpense(id){
           ${S.items.map(i=>`<option value="${i.id}" ${e.itemId===i.id?'selected':''}>${esc(i.name)} — ${money(i.cost)} ر.ق</option>`).join('')}</select></div>
       <div class="field"><label>الكمية</label><input id="eQty" type="number" min="1" step="1" value="${e.qty||1}" data-act="exp-qty"></div>
     </div>
+    <label id="eStockWrap" style="display:flex;gap:10px;align-items:flex-start;padding:2px 0 10px;cursor:pointer">
+      <input type="checkbox" id="eStock" checked style="margin-top:3px;width:17px;height:17px">
+      <span><b>إضافة الكمية إلى المخزون</b>
+        <br><span style="font-size:12px;color:var(--muted)">تُضاف الكمية إلى رصيد الصنف ويُسجَّل لها حركة استلام.
+        لا تستخدميها إذا كنتِ قد سجّلتِ الاستلام من شاشة المخزون حتى لا تتضاعف الكمية.</span></span></label>
     <div id="eHint" style="font-size:12px;color:var(--muted);margin:-6px 0 14px">
       عند اختيار صنف يُعبَّأ سعره المسجّل تلقائياً، ويمكن تعديل المبلغ إذا اختلف السعر. تسجيل استلام بضاعة مع تحديث الكمية يتم من شاشة المخزون.</div>
     <div class="field"><label>من دفعها من حسابه الخاص؟</label><select id="ePayer">
@@ -2177,7 +2182,7 @@ function openClient(id){
 }
 
 /* ---- bulk import of inventory items ---- */
-const IMPORT_SEED = `جل بوليش KOA — 810 | جل بوليش KOA | حبة | 1 | 50 | 15
+const IMPORT_SEED_KOA = `جل بوليش KOA — 810 | جل بوليش KOA | حبة | 1 | 50 | 15
 جل بوليش KOA — 50 | جل بوليش KOA | حبة | 1 | 50 | 15
 جل بوليش KOA — 17 | جل بوليش KOA | حبة | 1 | 50 | 15
 جل بوليش KOA — 700 | جل بوليش KOA | حبة | 1 | 50 | 15
@@ -2349,6 +2354,95 @@ const IMPORT_SEED = `جل بوليش KOA — 810 | جل بوليش KOA | حبة 
 قصافة (استخدام مرة) | مستهلكات | حبة | 4 | 25 | 15 | هدية
 كتالوج ألوان KOA | معدات | حبة | 1 | 300 | 1 | هدية
 بافر | مستهلكات | رزمة | 3 | 150 | 15 | هدية`;
+const IMPORT_SEED_SHEIN = `ملصقات حرارية زهرة 50×50 (رول) | تغليف وملصقات | رول | 1 | 14.0 | 15
+طابعة ملصقات Phomemo M110 | معدات | جهاز | 1 | 134.0 | 1
+فويل ترانسفير دانتيل 10 رولات | نيل آرت | طقم | 1 | 5.85 | 15
+شارمات نجمة بحر ذهبية 50 قطعة | نيل آرت | علبة | 1 | 8.55 | 15
+طقم عناية أظافر 75 قطعة | أدوات أظافر | طقم | 1 | 35.89 | 15
+مشابك تثبيت التركيب 100 قطعة | أدوات أظافر | علبة | 1 | 5.42 | 15
+طقم صنفرة دريل 150 قطعة + رؤوس | أدوات أظافر | طقم | 1 | 12.83 | 15
+عبوات كريم بمضخة 2.5g — 50 قطعة | تعبئة وتغليف | علبة | 1 | 16.07 | 15
+بودرة أورورا وردية 6 علب | نيل آرت | طقم | 1 | 8.12 | 15
+علبة 12 خانة لؤلؤ وفيونكات | نيل آرت | علبة | 1 | 10.0 | 15
+مبارد صغيرة مزدوجة 100 قطعة | مستهلكات | علبة | 1 | 9.5 | 15
+فورمات تمديد أظافر ذهبية 100 | مستهلكات | رول | 1 | 6.65 | 15
+ستيكرز توليب ذهبي 5D | نيل آرت | ورقة | 1 | 4.39 | 15
+فرش رسم أظافر 8 قطع | أدوات أظافر | طقم | 1 | 9.93 | 15
+حوامل أرقام طاولات خشبية 10 | ديكور وعرض | طقم | 1 | 22.8 | 15
+مرايل شفافة استخدام مرة 100 | مستهلكات | علبة | 1 | 16.82 | 15
+منظم أكياس شاي خشبي | ديكور وعرض | حبة | 1 | 16.8 | 15
+شموع دائرية 100 قطعة | ديكور وعرض | علبة | 1 | 25.73 | 15
+زجاجة ضخ زجاجية 180 مل | أدوات أظافر | حبة | 1 | 13.09 | 15
+فرشاة إزالة غبار الأظافر | أدوات أظافر | حبة | 1 | 7.37 | 15
+ستيكر فيونكة بيضاء 5D | نيل آرت | ورقة | 1 | 6.99 | 15
+ستيكر فراشات وكرز 5D | نيل آرت | ورقة | 1 | 5.92 | 15
+شموع عمودية بيضاء 3 مقاسات | ديكور وعرض | طقم | 1 | 35.52 | 15
+دلايات نجمة CCB 100 قطعة | إكسسوارات | علبة | 1 | 5.53 | 15
+سلسلة استانلس ذهبية 2 متر | إكسسوارات | رول | 1 | 13.3 | 15
+علبة تنظيم أدوات الأظافر | أدوات أظافر | حبة | 1 | 9.01 | 15
+واقي وجه أكريليك شفاف | مستهلكات | حبة | 1 | 16.15 | 15
+ستيكرز نجوم وقلوب ليزر 5D | نيل آرت | ورقة | 1 | 4.39 | 15
+ستيكر ورود بيضاء لؤلؤ 3D | نيل آرت | ورقة | 1 | 5.36 | 15
+قفازات نتريل سوداء 100 قطعة L | مستهلكات | علبة | 1 | 28.6 | 15
+ستيكرز نخيل وسلحفاة 3D | نيل آرت | ورقة | 1 | 7.0 | 15
+شارمات حروف استانلس 100 قطعة | إكسسوارات | علبة | 1 | 30.41 | 15
+كليب بورد أكريليك A4 | ديكور وعرض | حبة | 1 | 33.44 | 15
+شافطة غبار أظافر LIMEGIRL | معدات | جهاز | 1 | 60.96 | 1
+نقاط لاصقة للبالونات 400 | ديكور وعرض | رول | 1 | 5.79 | 15
+ستيكرز فيونكات حرير 3 أوراق | نيل آرت | طقم | 1 | 4.33 | 15
+مبخرة سيراميك | ديكور وعرض | حبة | 1 | 36.34 | 15
+ستيكر فراشات جيلي وردي | نيل آرت | ورقة | 1 | 6.69 | 15
+ستيكر دانتيل أبيض لؤلؤ | نيل آرت | ورقة | 1 | 6.45 | 15
+لمبة مكتب LED لاسلكية | معدات | جهاز | 1 | 54.88 | 1
+مسدس تاق ملابس + 1000 بارب | أدوات عامة | طقم | 1 | 14.25 | 15
+قالب سيليكون فيونكة 3D | نيل آرت | طقم | 1 | 8.29 | 15
+طقم قماع معدني 3 قطع | أدوات عامة | طقم | 1 | 10.26 | 15
+ستيكرز نخيل استوائي 12 | نيل آرت | ورقة | 1 | 6.0 | 15
+غراء أحجار أظافر 10 مل | نيل آرت | حبة | 1 | 6.84 | 15
+ستيكرز زهور هاواي | نيل آرت | ورقة | 1 | 5.59 | 15
+فيونكات معدنية ذهبية 12 خانة | نيل آرت | علبة | 1 | 7.6 | 15
+ستيكرز بلوبيري 5D | نيل آرت | ورقة | 1 | 6.65 | 15
+ستيكرز هيبسكس 5D | نيل آرت | ورقة | 1 | 6.65 | 15
+طقم كماشات مجوهرات 3 قطع | أدوات عامة | طقم | 1 | 15.65 | 15
+حامل خواتم سيراميك | ديكور وعرض | حبة | 1 | 29.93 | 15
+ستيكرز كاميليا صفراء | نيل آرت | ورقة | 1 | 6.05 | 15
+ستيكرز كاميليا بيضاء | نيل آرت | ورقة | 1 | 6.06 | 15
+ستيكرز قلوب فضية 5D | نيل آرت | ورقة | 1 | 6.99 | 15
+ستيكرز فيونكة منقطة سوداء | نيل آرت | ورقة | 1 | 5.13 | 15
+ستيكرز أوراق بيضاء 3D | نيل آرت | ورقة | 1 | 5.0 | 15
+حوامل بطاقات أكريليك 10 | ديكور وعرض | طقم | 1 | 14.25 | 15
+مغلفات صغيرة 100 قطعة | تغليف وملصقات | علبة | 1 | 19.95 | 15
+طقم إكسسوارات مجوهرات | إكسسوارات | علبة | 1 | 12.44 | 15
+ستيكرز أجنحة فراشات | نيل آرت | ورقة | 1 | 5.99 | 15
+أغطية أكواب ورقية 100 | مستهلكات | علبة | 1 | 9.98 | 15
+قفازات بيطرية طويلة 50 | مستهلكات | علبة | 1 | 14.11 | 15
+أكياس جوت بسحّاب 20 | تغليف وملصقات | علبة | 1 | 40.55 | 15
+علب كريم 5g — 10 قطع | تعبئة وتغليف | علبة | 1 | 6.65 | 15
+وعاء نقع أظافر (قطعتان) | أدوات أظافر | طقم | 1 | 11.0 | 15
+ستيكرز فيونكات حمراء 3D | نيل آرت | ورقة | 1 | 5.93 | 15
+قفازات UV بدون أصابع | مستهلكات | زوج | 1 | 6.25 | 15
+قفازات حماية UV (زوج) | مستهلكات | زوج | 5 | 7.6 | 15
+سلسلة نحاس مطلي ذهب 2 متر | إكسسوارات | رول | 1 | 6.84 | 15
+فرش خطوط أظافر 5 قطع | أدوات أظافر | طقم | 1 | 16.15 | 15
+دلايات لؤلؤ ABS 30 قطعة | إكسسوارات | علبة | 1 | 5.59 | 15
+بارب تاق ملابس 5000 | تغليف وملصقات | علبة | 1 | 14.74 | 15
+شارمات قلوب استانلس 20 | إكسسوارات | علبة | 1 | 6.45 | 15
+ملصقات حرارية شفافة دائرية 140 | تغليف وملصقات | رول | 1 | 14.25 | 15
+مشابك جل سريع 20 قطعة | أدوات أظافر | علبة | 1 | 12.11 | 15
+دلايات قفل ومفتاح 40 | إكسسوارات | علبة | 1 | 6.65 | 15
+دلايات فيونكة 20 | إكسسوارات | علبة | 1 | 5.7 | 15
+أقنعة قدم طويلة 10 | مستهلكات | علبة | 1 | 14.25 | 15
+أحجار قمر ونجوم فضية 12 خانة | نيل آرت | علبة | 1 | 5.12 | 15
+بودرة أورورا لؤلؤية بيضاء | نيل آرت | علبة | 1 | 4.51 | 15
+ستيكرز نجوم ذهبية 3D | نيل آرت | ورقة | 1 | 5.99 | 15
+رؤوس تنعيم روسية 30 | أدوات أظافر | طقم | 1 | 10.24 | 15
+أحجار أظافر 12 خانة — فضي | نيل آرت | علبة | 1 | 6.0 | 15
+أحجار أظافر 12 خانة — مكس | نيل آرت | علبة | 1 | 6.0 | 15
+برطمانات بلاستيك 9 قطع 200 مل | تعبئة وتغليف | طقم | 1 | 25.65 | 15
+برطمانات بلاستيك 9 قطع 250 مل | تعبئة وتغليف | طقم | 1 | 28.22 | 15
+ستيكرز قلوب ذهبية 5D | نيل آرت | ورقة | 1 | 6.32 | 15
+ستيكرز شاطئ صيفي 3D | نيل آرت | ورقة | 1 | 6.51 | 15`;
+
 function openImport(){
   modal('استيراد أصناف إلى المخزون',
    `<p style="margin:0 0 12px;color:var(--muted);font-size:13.5px">
@@ -2358,14 +2452,27 @@ function openImport(){
       ولا تدخل في قيمة المخزون ولا في المصروفات.
       القائمة أدناه مُعبّأة من فاتورة المورّد؛ عدّليها كما تشائين قبل الاستيراد.
       الأصناف الموجودة مسبقاً بنفس الاسم لن تتكرر.</p>
-    <div class="field"><label>المورّد</label><input id="impSup" value="Reflect Trading"></div>
+    <div class="row-2">
+      <div class="field"><label>قائمة جاهزة</label>
+        <select id="impPreset" data-act="imp-preset">
+          <option value="koa">فاتورة Reflect Trading — مستلزمات KOA</option>
+          <option value="shein">فاتورة SHEIN — نيل آرت ومستلزمات</option>
+          <option value="none">قائمة فارغة (أكتبها بنفسي)</option>
+        </select></div>
+      <div class="field"><label>المورّد</label><input id="impSup" value="Reflect Trading"></div>
+    </div>
+    <div class="row-2">
+      <div class="field"><label>تسجيل قيمة المشتريات كمصروف</label>
+        <select id="impExp"><option value="1">نعم — سجّليها مصروفاً</option><option value="0">لا</option></select></div>
+      <div class="field"><label>تاريخ الفاتورة</label><input id="impDate" type="date" value="${today()}"></div>
+    </div>
     <label style="display:flex;gap:10px;align-items:flex-start;padding:6px 0 12px;cursor:pointer">
       <input type="checkbox" id="impWipe" style="margin-top:3px;width:17px;height:17px">
       <span><b>حذف كل أصناف المخزون الحالية قبل الاستيراد</b>
         <br><span style="font-size:12px;color:var(--clay)">استخدميه إذا كانت القائمة الحالية خاطئة وتريدين استبدالها بالكامل.
         سيُحذف كل صنف موجود الآن، ولن تتأثر الحجوزات ولا الفواتير.</span></span></label>
     <textarea id="impText" dir="rtl" style="width:100%;height:260px;padding:10px;border:1px solid var(--line);
-      border-radius:var(--r-sm);font-size:13px;line-height:1.9">${esc(IMPORT_SEED)}</textarea>`,
+      border-radius:var(--r-sm);font-size:13px;line-height:1.9">${esc(IMPORT_SEED_KOA)}</textarea>`,
    `<button class="btn" data-act="imp-run">استيراد الأصناف</button>
     <button class="btn quiet" data-act="close">إلغاء</button>`,true);
 }
@@ -2428,6 +2535,13 @@ document.addEventListener('input',e=>{
 document.addEventListener('change',e=>{
   const el=e.target.closest('[data-act]'); if(!el) return;
   const a=el.dataset.act;
+  if(a==='imp-preset'){
+    const t=document.getElementById('impText'), sup=document.getElementById('impSup');
+    if(el.value==='koa'){ if(t) t.value=IMPORT_SEED_KOA; if(sup) sup.value='Reflect Trading' }
+    else if(el.value==='shein'){ if(t) t.value=IMPORT_SEED_SHEIN; if(sup) sup.value='SHEIN' }
+    else { if(t) t.value=''; if(sup) sup.value='' }
+    return;
+  }
   if(a==='mv-item'||a==='mv-calc'){
     const it=byId(S.items,val('mItem'));
     const unitEl=document.getElementById('mUnit');
@@ -2747,6 +2861,7 @@ document.addEventListener('click',async e=>{
     case 'imp-open': openImport(); break;
     case 'imp-run': {
       const sup=val('impSup');
+      const wantExp=val('impExp')==='1', expDate=val('impDate')||today();
       const raw=(document.getElementById('impText')||{}).value||'';
       let added=0, skipped=0, bad=0, wiped=0;
       const wipeFirst=(document.getElementById('impWipe')||{}).checked;
@@ -2767,6 +2882,14 @@ document.addEventListener('click',async e=>{
         S.items.push(it); await put('items',it); added++;
       }
       close(); render();
+      if(wantExp){
+        const total=S.items.filter(i=>i.supplier===sup&&!i.gift).reduce((a,i)=>a+i.qty*i.cost,0);
+        if(total>0){
+          const ex={id:uid('e'),date:expDate,cat:'بضاعة ومستلزمات',amount:Math.round(total*100)/100,
+            note:'مشتريات مستوردة — '+sup,by:ME.name,payer:ME.id};
+          S.expenses.push(ex); await put('expenses',ex);
+        }
+      }
       try{ if(typeof save==='function') save() }catch(e){}
       toast((wiped?`حُذف ${wiped} صنفاً قديماً · `:'') + `تم استيراد ${added} صنفاً` + (skipped?` · تُخطّي ${skipped} موجودة`:'') + (bad?` · ${bad} سطر غير صالح`:''));
       break; }
@@ -2867,10 +2990,23 @@ document.addEventListener('click',async e=>{
       Object.assign(ex,{date:val('eDate')||today(),cat:val('eCat'),amount:amt,note:val('eNote'),
         payer:val('ePayer'),itemId:val('eItem'),qty:numv('eQty')||1});
       const li=byId(S.items,val('eItem'));
-      if(li&&numv('eQty')>0){ const unit=amt/numv('eQty');
+      const eq=numv('eQty');
+      if(li&&eq>0){
+        const unit=amt/eq;
         if(unit>0&&Math.abs(unit-li.cost)>0.009){
           if(li.cost0==null) li.cost0=li.cost;
-          li.cost=Math.round(unit*100)/100; li.costAt=val('eDate')||today(); await put('items',li) } }
+          li.cost=Math.round(unit*100)/100; li.costAt=val('eDate')||today();
+        }
+        const addStock=!id && !!(document.getElementById('eStock')||{}).checked;
+        if(addStock){
+          li.qty=(+li.qty||0)+eq;
+          if(li.gift){ li.gift=false }
+          const mv={id:uid('m'),itemId:li.id,type:'in',qty:eq,by:ME.name,
+            at:(val('eDate')||today())+'T00:00',bookingId:'',note:'استلام من مصروف: '+(val('eNote')||'')};
+          S.movements.push(mv); await put('movements',mv);
+        }
+        await put('items',li);
+      }
       await put('expenses',ex); close(); render(); toast('تم حفظ المصروف'); break; }
     case 'exp-del': {
       if(!confirm('حذف المصروف؟')) break;
